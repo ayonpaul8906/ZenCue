@@ -104,8 +104,8 @@ yarn dev
 
 ## 👥 Team
 Ayon Paul — Frontend Developer
+Arnab Ghosh — Backend Developer
 
-[Your Team Members Here]
 
 
 
