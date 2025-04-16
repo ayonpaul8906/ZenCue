@@ -1,0 +1,54 @@
+# Logs & Output
+logs
+*.log
+*.out
+*.err
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+*.coverage
+.coverage.*
+.pytest_cache/
+.cache/
+
+# Env files
+.env
+.env.*
+
+# Node dependencies
+node_modules/
+frontend/node_modules/
+
+# Frontend build outputs
+frontend/dist/
+frontend/.vite/
+frontend/.next/
+frontend/.nuxt/
+frontend/.svelte-kit/
+
+# Backend Python
+backend/__pycache__/
+backend/*.py[cod]
+backend/venv/
+backend/env/
+backend/.pytest_cache/
+backend/.coverage
+backend/.mypy_cache/
+backend/.cache/
+backend/*.sqlite3
+backend/*.db
+backend/instance/
+
+# Editor & OS-specific files
+.vscode/
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
