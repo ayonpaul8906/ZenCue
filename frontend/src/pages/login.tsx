@@ -1,24 +1,48 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import { Input } from '../components/ui/input'
-import { Button } from '../components/ui/button'
-import { PasswordInput } from '../components/ui/PasswordInput'
-import { motion } from 'framer-motion'
-import { Link } from "react-router-dom"
-import { ArrowLeft } from 'lucide-react'
+import { useState } from 'react';
+import { Input } from '../components/ui/input';
+import { Button } from '../components/ui/button';
+import { PasswordInput } from '../components/ui/PasswordInput';
+import { motion } from 'framer-motion';
+import { Link, useNavigate } from 'react-router-dom';
+import { ArrowLeft } from 'lucide-react';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '../lib/firebase';
+import { useAuth } from '../hooks/AuthContext';
+import { toast } from "react-hot-toast"; 
+
 
 export default function Login() {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const { login } = useAuth();
+  const navigate = useNavigate();
 
-  const handleLogin = () => {
-    console.log('Login:', email, password)
-  }
+  const handleLogin = async () => {
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+      console.log('Login success:', user);
+      login(user); // Update the AuthContext with the logged-in user
+  
+      // Play success sound
+      const audio = new Audio("../../public/success-sound.mp3"); // Replace with your success sound file
+      audio.play();
+  
+      // Show success toast
+      toast.success("Login successful!");
+  
+      navigate('/profile'); // Redirect to the profile page or any protected route
+    } catch (error: any) {
+      console.error('Login error:', error.message);
+      setError(error.message);
+    }
+  };
 
   return (
     <main className="relative min-h-screen bg-gradient-to-br from-[#0f0c29] via-[#302b63] to-[#24243e] flex items-center justify-center px-4">
-
       {/* Back Button */}
       <Link
         to="/"
@@ -43,6 +67,8 @@ export default function Login() {
           Log In
         </motion.h2>
 
+        {error && <p className="text-red-500 text-center">{error}</p>}
+
         <motion.div
           className="space-y-6"
           initial="hidden"
@@ -51,9 +77,9 @@ export default function Login() {
             hidden: {},
             show: {
               transition: {
-                staggerChildren: 0.15
-              }
-            }
+                staggerChildren: 0.15,
+              },
+            },
           }}
         >
           {/* Email Field */}
@@ -98,9 +124,11 @@ export default function Login() {
           transition={{ delay: 0.8 }}
         >
           Don’t have an account?
-          <Link to="/signup" className="text-blue-400 hover:underline ml-1 font-medium">Sign up</Link>
+          <Link to="/signup" className="text-blue-400 hover:underline ml-1 font-medium">
+            Sign up
+          </Link>
         </motion.p>
       </motion.div>
     </main>
-  )
+  );
 }

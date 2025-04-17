@@ -73,7 +73,7 @@ export default function ProfilePage() {
             <Dialog>
               <DialogTrigger asChild>
                 <Button className="bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:brightness-110 transition shadow-md">
-                  Edit Profile
+                  <Pencil />Edit Profile
                 </Button>
               </DialogTrigger>
               <DialogContent className="bg-white">

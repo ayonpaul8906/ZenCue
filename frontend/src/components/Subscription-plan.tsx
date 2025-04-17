@@ -1,8 +1,9 @@
-import { Button } from "./ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "./ui/card"
-import { StarIcon } from "lucide-react"
-import { useSubscriptionPayment } from "../hooks/useSubscriptionPayment"
-import { Toaster } from "react-hot-toast"
+import { Button } from "./ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "./ui/card";
+import { StarIcon } from "lucide-react";
+import { useSubscriptionPayment } from "../hooks/useSubscriptionPayment";
+import { Toaster, toast } from "react-hot-toast"; // Import toast
+import { useAuth } from "../hooks/AuthContext"; // Import AuthContext
 
 const featuredPrompts = [
   {
@@ -19,43 +20,49 @@ const featuredPrompts = [
   {
     id: 2,
     title: "Basic",
-    description: `•	40 AI prompts/day
-•	Access to visual aid (diagram explainer) and 3 screen reads/day
-•	Audio-to-text: 30 mins/month
-•	Personal theme/font preferences
-•	Ideal for light users who need occasional help`,
-    price: "$15/month",
+    description: `• 40 AI prompts/day
+• Access to visual aid (diagram explainer) and 3 screen reads/day
+• Audio-to-text: 30 mins/month
+• Personal theme/font preferences
+• Ideal for light users who need occasional help`,
+    price: "0.005 SEP ETH/month",
     amount: 15,
     rating: 4.9,
   },
   {
     id: 3,
     title: "Pro",
-    description: `•	100 AI prompts/day
-•	15 screen reads/month + scheduled screen reads
-•	Audio-to-text: 90 mins/month
-•	AI-generated visual sketches: 50/month
-•	Full personalization (AI tone, preferences, interaction history)
-•	Ideal for students or professionals needing consistent support`,
-    price: "$25/month",
+    description: `• 100 AI prompts/day
+• 15 screen reads/month + scheduled screen reads
+• Audio-to-text: 90 mins/month
+• AI-generated visual sketches: 50/month
+• Full personalization (AI tone, preferences, interaction history)
+• Ideal for students or professionals needing consistent support`,
+    price: "0.0083 SEP ETH/month",
     amount: 25,
     rating: 4.7,
   },
   {
     id: 4,
     title: "Premium",
-    description: `•	100 AI prompts/day
-•	Unlimited :  screen reads, audio help, sketches
-•	Personalized AI memory and tone
-•	Priority support + potential 1-on-1 help
-•	Perfect for power users or those who rely heavily on accessibility tools`,
-    price: "$40/month",
+    description: `• 100 AI prompts/day
+• Unlimited: screen reads, audio help, sketches
+• Personalized AI memory and tone
+• Priority support + potential 1-on-1 help
+• Perfect for power users or those who rely heavily on accessibility tools`,
+    price: "0.0133 SEP ETH/month",
     amount: 40,
     rating: 4.7,
   },
-]
+];
 
 export function SubscriptionPlan() {
+  const { user } = useAuth(); // Access user from AuthContext
+
+  const handleRestrictedAccess = () => {
+    toast.error("You need to log in to purchase a subscription plan!"); // Show toast notification
+  };
+
   return (
     <section className="py-16 px-6">
       <div className="mx-auto max-w-7xl">
@@ -63,7 +70,7 @@ export function SubscriptionPlan() {
         <h2 className="text-3xl font-bold tracking-tight text-center mb-12">Subscription Plan</h2>
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {featuredPrompts.map((prompt) => {
-            const { initiatePayment, isPending, ethValue } = useSubscriptionPayment(prompt.amount);
+            const { initiatePayment, isPending } = useSubscriptionPayment(prompt.amount);
 
             return (
               <Card key={prompt.id} className="group relative flex flex-col h-full overflow-hidden transition-all hover:shadow-lg">
@@ -71,7 +78,13 @@ export function SubscriptionPlan() {
                 {prompt.amount > 0 && (
                   <Button
                     className="absolute top-4 right-4 z-10"
-                    onClick={initiatePayment}
+                    onClick={() => {
+                      if (!user) {
+                        handleRestrictedAccess(); // Show alert if user is not logged in
+                      } else {
+                        initiatePayment(); // Proceed with payment if user is logged in
+                      }
+                    }}
                     disabled={isPending}
                   >
                     {isPending ? "Processing..." : `Buy Now`}

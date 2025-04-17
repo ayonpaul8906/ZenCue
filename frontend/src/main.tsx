@@ -5,12 +5,13 @@ import App from "./App";
 import "./index.css";
 import './globals.css'
 
-
+import { Toaster } from "react-hot-toast";
 import { WagmiProvider, createConfig, http } from 'wagmi';
 import { coinbaseWallet, injected, walletConnect } from 'wagmi/connectors';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { sepolia } from 'wagmi/chains';
 import { OnchainKitProvider } from '@coinbase/onchainkit';
+import { AuthProvider } from './hooks/AuthContext'
 
 const config = createConfig({
   chains: [sepolia],
@@ -28,14 +29,17 @@ const queryClient = new QueryClient();
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <BrowserRouter>
-    <WagmiProvider config={config}>
-      <QueryClientProvider client={queryClient}>
-        <OnchainKitProvider {...({ appId: import.meta.env.VITE_COINBASE_APP_ID } as any)}>
-          <App />
-        </OnchainKitProvider>
-      </QueryClientProvider>
-    </WagmiProvider>
-    </BrowserRouter>
+    <AuthProvider>
+      <BrowserRouter>
+        <WagmiProvider config={config}>
+          <QueryClientProvider client={queryClient}>
+            <OnchainKitProvider {...({ appId: import.meta.env.VITE_COINBASE_APP_ID } as any)}>
+              <Toaster />
+              <App />
+            </OnchainKitProvider>
+          </QueryClientProvider>
+        </WagmiProvider>
+      </BrowserRouter>
+    </AuthProvider>
   </React.StrictMode>
 );

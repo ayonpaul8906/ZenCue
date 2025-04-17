@@ -1,8 +1,5 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
-import html2canvas from 'html2canvas';
-import Tesseract from 'tesseract.js';
+import { useState, useRef } from 'react';
 import axios from 'axios';
-import { useDropzone } from 'react-dropzone';
 import { Navigation } from '../components/navigation';
 import { Footer } from '../components/footer';
 
@@ -10,142 +7,163 @@ function App() {
     const [responseText, setResponseText] = useState('');
     const [isSpeaking, setIsSpeaking] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
-    const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
-    const [selectedVoice, setSelectedVoice] = useState<SpeechSynthesisVoice | null>(null);
-    const [rate, setRate] = useState(1);
+    const [imageUrl, setImageUrl] = useState('');
     const [imagePreview, setImagePreview] = useState<string | null>(null);
 
     const captureRef = useRef<HTMLDivElement>(null);
     const explanationRef = useRef<HTMLDivElement>(null);
 
-    useEffect(() => {
-        const loadVoices = () => {
-            const allVoices = window.speechSynthesis.getVoices();
-            setVoices(allVoices);
-            if (allVoices.length) setSelectedVoice(allVoices[0]);
-        };
-
-        loadVoices();
-        if (typeof window !== 'undefined') {
-            window.speechSynthesis.onvoiceschanged = loadVoices;
-        }
-
-        window.onbeforeunload = () => {
-            window.speechSynthesis.cancel();
-        };
-    }, []);
-
     const stopSpeaking = () => {
-        if (speechSynthesis.speaking || speechSynthesis.pending) {
-            speechSynthesis.cancel();
+        // Just for UI toggle
+        setIsSpeaking(false);
+    };
+
+    const playGroqAudio = async (text: string) => {
+        try {
+            setIsSpeaking(true);
+            const response = await fetch('http://localhost:5000/speak', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text }),
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to fetch audio');
+            }
+
+            const blob = await response.blob();
+            const audioUrl = URL.createObjectURL(blob);
+            const audio = new Audio(audioUrl);
+
+            audio.onended = () => setIsSpeaking(false);
+            audio.play();
+        } catch (error) {
+            console.error('Audio playback error:', error);
             setIsSpeaking(false);
         }
     };
 
-    const speakText = (text: string) => {
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = 'en-US';
-        utterance.rate = rate;
-        if (selectedVoice) utterance.voice = selectedVoice;
+    const handleTextExplain = async () => {
+        const content = captureRef.current?.innerText || '';
+        if (!content.trim()) return;
 
-        utterance.onstart = () => setIsSpeaking(true);
-        utterance.onend = () => setIsSpeaking(false);
-
-        speechSynthesis.speak(utterance);
-    };
-
-    const handleCaptureAndRead = async () => {
-        if (captureRef.current) {
-            stopSpeaking();
-            setIsLoading(true);
-
-            try {
-                const canvas = await html2canvas(captureRef.current);
-                const dataUrl = canvas.toDataURL();
-                const result = await Tesseract.recognize(dataUrl, 'eng');
-                const text = result.data.text.trim();
-
-                const res = await axios.post('http://localhost:5000/explain', { text });
-                const explanation = res.data.explanation;
-                setResponseText(explanation);
-                speakText(explanation);
-
-                setTimeout(() => {
-                    explanationRef.current?.scrollIntoView({ behavior: 'smooth' });
-                }, 100);
-            } catch (error) {
-                console.error('Scan Error:', error);
-            } finally {
-                setIsLoading(false);
-            }
-        }
-    };
-
-    const onDrop = useCallback(async (acceptedFiles: File[]) => {
-        if (!acceptedFiles.length) return;
         stopSpeaking();
         setIsLoading(true);
 
-        const file = acceptedFiles[0];
-        const reader = new FileReader();
+        try {
+            const res = await axios.post('http://localhost:5000/explain', {
+                text: content,
+            });
 
-        reader.onload = async () => {
-            const dataUrl = reader.result as string;
-            setImagePreview(dataUrl);
+            const explanation = res.data.explanation;
+            setResponseText(explanation);
+            await playGroqAudio(explanation);
 
-            try {
-                const result = await Tesseract.recognize(dataUrl, 'eng');
-                const text = result.data.text.trim();
+            setTimeout(() => {
+                explanationRef.current?.scrollIntoView({ behavior: 'smooth' });
+            }, 100);
+        } catch (error) {
+            console.error('Text explanation error:', error);
+            setResponseText('❌ Error processing the text.');
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
-                const res = await axios.post('http://localhost:5000/explain', { text });
-                const explanation = res.data.explanation;
-                setResponseText(explanation);
-                speakText(explanation);
+    const handleUrlSubmit = async () => {
+        if (!imageUrl.trim()) return;
+    
+        stopSpeaking();
+        setIsLoading(true);
+        setImagePreview(imageUrl);
+    
+        try {
+            const res = await axios.post('http://localhost:5000/explain-image', {
+                image_url: imageUrl,
+            });
+    
+            const explanation = res.data.explanation;
+            setResponseText(explanation);
+            const handleUrlSubmit = async () => {
+    if (!imageUrl.trim()) return;
 
-                setTimeout(() => {
-                    explanationRef.current?.scrollIntoView({ behavior: 'smooth' });
-                }, 100);
-            } catch (error) {
-                console.error('Image scan error:', error);
-            } finally {
-                setIsLoading(false);
+    stopSpeaking();
+    setIsLoading(true);
+    setImagePreview(imageUrl);
+
+    try {
+        const res = await axios.post('http://localhost:5000/explain-image', {
+            image_url: imageUrl,
+        });
+
+        const explanation = res.data.explanation;
+        setResponseText(explanation);
+
+        console.log("🎯 Explanation from image:", explanation);
+
+
+        if (explanation && explanation.trim()) {
+            await playGroqAudio(explanation);
+        } else {
+            console.warn("⚠️ No explanation returned from /explain-image");
+        }
+
+        setTimeout(() => {
+            explanationRef.current?.scrollIntoView({ behavior: 'smooth' });
+        }, 100);
+    } catch (error) {
+        console.error('Image URL analysis error:', error);
+        setResponseText('❌ Error processing the image URL.');
+    } finally {
+        setIsLoading(false);
+    }
+};
+
+    
+            if (explanation && explanation.trim()) {
+                await playGroqAudio(explanation);
+            } else {
+                console.warn("⚠️ No explanation returned from /explain-image");
             }
-        };
-
-        reader.readAsDataURL(file);
-    }, []);
-
-    const { getRootProps, getInputProps, isDragActive } = useDropzone({
-        onDrop,
-        accept: { 'image/*': [] },
-    });
+    
+            setTimeout(() => {
+                explanationRef.current?.scrollIntoView({ behavior: 'smooth' });
+            }, 100);
+        } catch (error) {
+            console.error('Image URL analysis error:', error);
+            setResponseText('❌ Error processing the image URL.');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+    
 
     return (
-        <div> <Navigation />
+        <div>
+            <Navigation />
             <div style={styles.page}>
                 <div style={styles.container}>
                     <h1 style={styles.title}>Simpy Screen</h1>
 
                     <div ref={captureRef} contentEditable suppressContentEditableWarning style={styles.editableBox}>
-                        <p>✏️ Type or paste any text here and click "Scan + Explain"</p>
+                        <p>✏️ Type or paste any text here and click "Explain Text"</p>
                     </div>
 
-                    {/* Dropzone */}
-                    <div
-                        {...getRootProps()}
-                        style={{
-                            ...styles.dropzone,
-                            backgroundColor: isDragActive ? '#e0f7fa' : '#fafafa',
-                            borderColor: isDragActive ? '#00acc1' : '#ccc',
-                        }}
-                    >
-                        <input {...getInputProps()} />
-                        {isDragActive ? (
-                            <p>📂 Drop your image here...</p>
-                        ) : (
-                            <p>📂 Drag & drop an image or click to select</p>
-                        )}
-                    </div>
+                    <button onClick={handleTextExplain} style={styles.button}>
+                        🧠 Explain Text
+                    </button>
+
+                    <input
+                        type="text"
+                        placeholder="Paste image URL"
+                        value={imageUrl}
+                        onChange={(e) => setImageUrl(e.target.value)}
+                        style={{ ...styles.editableBox, fontSize: '1rem', marginBottom: '10px' }}
+                    />
+
+                    <button onClick={handleUrlSubmit} style={styles.button}>
+                        🌐 Explain Image from URL
+                    </button>
 
                     {imagePreview && (
                         <div style={{ textAlign: 'center', marginBottom: '10px' }}>
@@ -157,54 +175,12 @@ function App() {
                         </div>
                     )}
 
-                    <button
-                        onClick={handleCaptureAndRead}
-                        style={{
-                            ...styles.button,
-                            backgroundColor: isSpeaking ? '#aaa' : '#4caf50',
-                            cursor: isSpeaking ? 'not-allowed' : 'pointer',
-                        }}
-                        disabled={isSpeaking}
-                    >
-                        🔍 Scan + Explain
-                    </button>
-
                     <button onClick={stopSpeaking} style={styles.stopButton}>
                         🛑 Stop Speaking
                     </button>
 
                     {isSpeaking && <div style={styles.toast}>🔊 Speaking...</div>}
-                    {isLoading && <div style={styles.toast}>⏳ Scanning ...</div>}
-
-                    {/* Voice & Speech Controls */}
-                    <div style={styles.controls}>
-                        <label>
-                            🗣️ Voice:
-                            <select
-                                value={selectedVoice?.name}
-                                onChange={(e) =>
-                                    setSelectedVoice(voices.find((v) => v.name === e.target.value) || null)
-                                }
-                            >
-                                {voices.map((voice, idx) => (
-                                    <option key={idx} value={voice.name}>
-                                        {voice.name}
-                                    </option>
-                                ))}
-                            </select>
-                        </label>
-                        <label>
-                            ⚡ Speed: {rate.toFixed(1)}
-                            <input
-                                type="range"
-                                min="0.5"
-                                max="2"
-                                step="0.1"
-                                value={rate}
-                                onChange={(e) => setRate(parseFloat(e.target.value))}
-                            />
-                        </label>
-                    </div>
+                    {isLoading && <div style={styles.toast}>⏳ Analyzing...</div>}
 
                     {responseText && (
                         <div style={styles.section} ref={explanationRef}>
@@ -220,7 +196,6 @@ function App() {
 }
 
 const styles: { [key: string]: React.CSSProperties } = {
-
     page: {
         minHeight: '100vh',
         width: '100vw',
@@ -247,7 +222,7 @@ const styles: { [key: string]: React.CSSProperties } = {
         border: '2px dashed #aaa',
         padding: '20px',
         marginBottom: '20px',
-        minHeight: '140px',
+        minHeight: '60px',
         backgroundColor: '#fff',
         color: '#000',
         borderRadius: '8px',
@@ -291,7 +266,6 @@ const styles: { [key: string]: React.CSSProperties } = {
         fontSize: '0.95rem',
         fontWeight: 'bold',
         boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
-        animation: 'fadeIn 0.3s ease-in',
     },
     controls: {
         backgroundColor: '#fff',
@@ -317,16 +291,6 @@ const styles: { [key: string]: React.CSSProperties } = {
         fontSize: '1rem',
         fontFamily: 'inherit',
         margin: 0,
-    },
-
-    dropzone: {
-        border: '2px dashed #ccc',
-        borderRadius: '8px',
-        padding: '20px',
-        textAlign: 'center',
-        cursor: 'pointer',
-        marginBottom: '15px',
-        transition: 'all 0.2s ease-in-out',
     },
 };
 

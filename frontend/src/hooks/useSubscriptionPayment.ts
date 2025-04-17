@@ -1,4 +1,3 @@
-// hooks/useSubscriptionPayment.ts
 'use client'
 
 import { useSendTransaction, useChainId } from 'wagmi';

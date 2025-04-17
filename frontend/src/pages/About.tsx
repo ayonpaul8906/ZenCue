@@ -1,14 +1,11 @@
 import { motion } from "framer-motion";
-import { Navigation } from '../components/navigation'
-import { Footer } from '../components/footer'
+import { Footer } from "../components/footer";
+import { Navigation } from "../components/navigation";
 
 const About: React.FC = () => {
   return (
-    <div>
-      <Navigation />
-
-      <div className="min-h-screen bg-gray-900 text-white">
-
+    <div><Navigation />
+      <div className="min-h-screen bg-[#E6E6FA] text-black-900">
         {/* Hero Section */}
         <motion.section
           initial={{ opacity: 0, y: -50 }}
@@ -19,7 +16,7 @@ const About: React.FC = () => {
           <h1 className="text-4xl md:text-6xl font-extrabold text-pink-500">
             About <span className="text-purple-400">ZenCue</span>
           </h1>
-          <p className="text-lg md:text-xl mt-4 text-gray-300 max-w-3xl mx-auto">
+          <p className="text-lg md:text-xl mt-4 text-black-300 max-w-3xl mx-auto">
             Designed with empathy and powered by AI, ZenCue is your calm digital companion that simplifies complex content, breaks down overwhelming tasks, and helps you stay focused in a noisy online world. Whether you're navigating the web, studying, or working, ZenCue gently guides you every step of the way—on your terms.
           </p>
         </motion.section>
@@ -31,10 +28,10 @@ const About: React.FC = () => {
               initial={{ opacity: 0, x: -50 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 1, delay: 0.5 }}
-              className="bg-gray-800 p-6 rounded-lg shadow-lg hover:shadow-purple-500/50 transition-all"
+              className="bg-purple-300 p-6 rounded-lg shadow-lg hover:shadow-purple-500/50 transition-all"
             >
-              <h2 className="text-2xl font-bold text-pink-400">Our Mission</h2>
-              <p className="text-gray-300 mt-2">
+              <h2 className="text-2xl font-bold text-purple-700">Our Mission</h2>
+              <p className="text-black-300 mt-2">
                 To empower neurodivergent individuals by making digital experiences simpler, smarter, and more supportive. We build intuitive tools that reduce overwhelm and enhance everyday focus.
               </p>
             </motion.div>
@@ -43,10 +40,10 @@ const About: React.FC = () => {
               initial={{ opacity: 0, x: 50 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 1, delay: 0.7 }}
-              className="bg-gray-800 p-6 rounded-lg shadow-lg hover:shadow-purple-500/50 transition-all"
+              className="bg-purple-300 p-6 rounded-lg shadow-lg hover:shadow-purple-500/50 transition-all"
             >
-              <h2 className="text-2xl font-bold text-pink-400">Our Vision</h2>
-              <p className="text-gray-300 mt-2">
+              <h2 className="text-2xl font-bold text-purple-700">Our Vision</h2>
+              <p className="text-black-300 mt-2">
                 To create a digital world where every mind—neurodivergent or not—can thrive with clarity and confidence. We aim to set the standard for accessible, empowering AI support.
               </p>
             </motion.div>
@@ -54,8 +51,8 @@ const About: React.FC = () => {
         </section>
 
         {/* Meet the Team Section */}
-        <section className="py-16 bg-gray-800">
-          <h2 className="text-center text-3xl font-bold text-pink-500 mb-8">
+        <section className="py-16 bg-purple-300">
+          <h2 className="text-center text-3xl font-bold text-purple-7w00 mb-8">
             Meet Our Team
           </h2>
           <div className="flex flex-wrap justify-center gap-8">
@@ -70,7 +67,7 @@ const About: React.FC = () => {
                 alt="Team Member"
                 className="rounded-full mx-auto mb-4 border-4 border-pink-500"
               />
-              <h3 className="text-lg font-bold">Ayon Paul</h3>
+              <h3 className="text-lg font-bold text-white">Ayon Paul</h3>
               <p className="text-gray-400">Frontend Developer</p>
             </motion.div>
 
@@ -85,7 +82,7 @@ const About: React.FC = () => {
                 alt="Team Member"
                 className="rounded-full mx-auto mb-4 border-4 border-purple-500"
               />
-              <h3 className="text-lg font-bold">Arnab Ghosh</h3>
+              <h3 className="text-lg font-bold text-white">Arnab Ghosh</h3>
               <p className="text-gray-400">FullStack developer</p>
             </motion.div>
 
@@ -100,7 +97,7 @@ const About: React.FC = () => {
                 alt="Team Member"
                 className="rounded-full mx-auto mb-4 border-4 border-purple-500"
               />
-              <h3 className="text-lg font-bold">Soumi Das</h3>
+              <h3 className="text-lg font-bold text-white">Soumi Das</h3>
               <p className="text-gray-400">UI/UX Designer</p>
             </motion.div>
             {/* Team Member 4 */}
@@ -114,16 +111,14 @@ const About: React.FC = () => {
                 alt="Team Member"
                 className="rounded-full mx-auto mb-4 border-4 border-purple-500"
               />
-              <h3 className="text-lg font-bold">Sudipta Maity</h3>
+              <h3 className="text-lg font-bold text-white">Sudipta Maity</h3>
               <p className="text-gray-400">Project Manager</p>
             </motion.div>
             {/* Add additional team members here */}
           </div>
         </section>
-
-        {/* Footer */}
-        <Footer />
       </div>
+      <Footer />
     </div>
   );
 };
