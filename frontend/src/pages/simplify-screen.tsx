@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
-import axios from 'axios';
 import { Navigation } from '../components/navigation';
 import { Footer } from '../components/footer';
+import { motion } from 'framer-motion';
 
 function App() {
     const [responseText, setResponseText] = useState('');
@@ -14,7 +14,6 @@ function App() {
     const explanationRef = useRef<HTMLDivElement>(null);
 
     const stopSpeaking = () => {
-        // Just for UI toggle
         setIsSpeaking(false);
     };
 
@@ -51,11 +50,18 @@ function App() {
         setIsLoading(true);
 
         try {
-            const res = await axios.post('http://localhost:5000/explain', {
-                text: content,
+            const response = await fetch('http://localhost:5000/explain', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text: content }),
             });
 
-            const explanation = res.data.explanation;
+            if (!response.ok) {
+                throw new Error('Failed to get explanation');
+            }
+
+            const res = await response.json();
+            const explanation = res.explanation;
             setResponseText(explanation);
             await playGroqAudio(explanation);
 
@@ -72,60 +78,27 @@ function App() {
 
     const handleUrlSubmit = async () => {
         if (!imageUrl.trim()) return;
-    
+
         stopSpeaking();
         setIsLoading(true);
         setImagePreview(imageUrl);
-    
+
         try {
-            const res = await axios.post('http://localhost:5000/explain-image', {
-                image_url: imageUrl,
+            const response = await fetch('http://localhost:5000/explain-image', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ image_url: imageUrl }),
             });
-    
-            const explanation = res.data.explanation;
-            setResponseText(explanation);
-            const handleUrlSubmit = async () => {
-    if (!imageUrl.trim()) return;
 
-    stopSpeaking();
-    setIsLoading(true);
-    setImagePreview(imageUrl);
-
-    try {
-        const res = await axios.post('http://localhost:5000/explain-image', {
-            image_url: imageUrl,
-        });
-
-        const explanation = res.data.explanation;
-        setResponseText(explanation);
-
-        console.log("🎯 Explanation from image:", explanation);
-
-
-        if (explanation && explanation.trim()) {
-            await playGroqAudio(explanation);
-        } else {
-            console.warn("⚠️ No explanation returned from /explain-image");
-        }
-
-        setTimeout(() => {
-            explanationRef.current?.scrollIntoView({ behavior: 'smooth' });
-        }, 100);
-    } catch (error) {
-        console.error('Image URL analysis error:', error);
-        setResponseText('❌ Error processing the image URL.');
-    } finally {
-        setIsLoading(false);
-    }
-};
-
-    
-            if (explanation && explanation.trim()) {
-                await playGroqAudio(explanation);
-            } else {
-                console.warn("⚠️ No explanation returned from /explain-image");
+            if (!response.ok) {
+                throw new Error('Failed to analyze image');
             }
-    
+
+            const res = await response.json();
+            const explanation = res.explanation;
+            setResponseText(explanation);
+            await playGroqAudio(explanation);
+
             setTimeout(() => {
                 explanationRef.current?.scrollIntoView({ behavior: 'smooth' });
             }, 100);
@@ -136,7 +109,21 @@ function App() {
             setIsLoading(false);
         }
     };
-    
+
+    const handlePause = () => {
+        // Handle pausing audio here (if possible)
+        setIsSpeaking(false);
+    };
+
+    const handlePlay = () => {
+        // Restart or resume audio if needed
+        setIsSpeaking(true);
+    };
+
+    const handleReplay = () => {
+        // Handle replaying the audio
+        playGroqAudio(responseText);
+    };
 
     return (
         <div>
@@ -175,11 +162,50 @@ function App() {
                         </div>
                     )}
 
-                    <button onClick={stopSpeaking} style={styles.stopButton}>
-                        🛑 Stop Speaking
-                    </button>
+                    {isSpeaking && (
+                        <div style={styles.waveformContainer}>
+                            {[...Array(5)].map((_, i) => (
+                                <span key={i} style={{ ...styles.bar, animationDelay: `${i * 0.1}s` }} />
+                            ))}
+                        </div>
+                    )}
 
-                    {isSpeaking && <div style={styles.toast}>🔊 Speaking...</div>}
+                    {isSpeaking && (
+                        <motion.div
+                            style={styles.audioControls}
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: 10 }}
+                        >
+                            <motion.button
+                                onClick={handlePause}
+                                style={styles.audioBtn}
+                                whileTap={{ scale: 0.9 }}
+                                title="Pause audio"
+                            >
+                                ⏸ Pause
+                            </motion.button>
+
+                            <motion.button
+                                onClick={handlePlay}
+                                style={styles.audioBtn}
+                                whileTap={{ scale: 0.9 }}
+                                title="Resume audio"
+                            >
+                                ▶️ Play
+                            </motion.button>
+
+                            <motion.button
+                                onClick={handleReplay}
+                                style={styles.audioBtn}
+                                whileTap={{ scale: 0.9 }}
+                                title="Replay from start"
+                            >
+                                🔁 Replay
+                            </motion.button>
+                        </motion.div>
+                    )}
+
                     {isLoading && <div style={styles.toast}>⏳ Analyzing...</div>}
 
                     {responseText && (
@@ -199,7 +225,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     page: {
         minHeight: '100vh',
         width: '100vw',
-        backgroundColor: '#f4f4f4',
+        backgroundColor: '#f7f4ff',
         color: '#000',
         display: 'flex',
         justifyContent: 'center',
@@ -210,21 +236,21 @@ const styles: { [key: string]: React.CSSProperties } = {
     container: {
         width: '100%',
         maxWidth: '800px',
+        textAlign: 'center',
     },
     title: {
-        textAlign: 'center',
-        color: '#111',
-        fontSize: '2.2rem',
-        marginBottom: '20px',
-        fontWeight: 'bold',
+        fontSize: '2.4rem',
+        fontWeight: '600',
+        marginBottom: '30px',
+        color: '#4B3F72',
     },
     editableBox: {
-        border: '2px dashed #aaa',
+        border: '2px dashed #4B3F72',
         padding: '20px',
         marginBottom: '20px',
         minHeight: '60px',
         backgroundColor: '#fff',
-        color: '#000',
+        color: '#4B3F72',
         borderRadius: '8px',
         fontSize: '1rem',
         whiteSpace: 'pre-wrap',
@@ -233,26 +259,14 @@ const styles: { [key: string]: React.CSSProperties } = {
     },
     button: {
         padding: '12px 24px',
-        backgroundColor: '#4caf50',
+        backgroundColor: '#7b4bc9',
         color: '#fff',
         fontWeight: 'bold',
         border: 'none',
         borderRadius: '6px',
         cursor: 'pointer',
         display: 'block',
-        margin: '0 auto 10px',
-        fontSize: '1rem',
-    },
-    stopButton: {
-        padding: '10px 22px',
-        backgroundColor: '#e53935',
-        color: '#fff',
-        fontWeight: 'bold',
-        border: 'none',
-        borderRadius: '6px',
-        cursor: 'pointer',
-        display: 'block',
-        margin: '0 auto 10px',
+        margin: '0 auto 20px',
         fontSize: '1rem',
     },
     toast: {
@@ -267,15 +281,37 @@ const styles: { [key: string]: React.CSSProperties } = {
         fontWeight: 'bold',
         boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
     },
-    controls: {
-        backgroundColor: '#fff',
-        padding: '15px',
-        margin: '20px 0',
-        borderRadius: '8px',
-        boxShadow: '0 1px 6px rgba(0,0,0,0.1)',
+    waveformContainer: {
         display: 'flex',
-        flexDirection: 'column',
-        gap: '10px',
+        justifyContent: 'center',
+        alignItems: 'flex-end',
+        gap: '6px',
+        height: '20px',
+        marginBottom: '10px',
+    },
+    bar: {
+        width: '4px',
+        height: '100%',
+        backgroundColor: '#7b4bc9',
+        borderRadius: '4px',
+        animation: 'bounce 1s infinite ease-in-out',
+    },
+    audioControls: {
+        display: 'flex',
+        justifyContent: 'center',
+        gap: '12px',
+        marginTop: '20px',
+    },
+    audioBtn: {
+        padding: '12px 18px',
+        backgroundColor: '#4B3F72',
+        color: '#fff',
+        borderRadius: '8px',
+        fontSize: '1.2rem',
+        fontWeight: 'bold',
+        border: 'none',
+        cursor: 'pointer',
+        transition: '0.3s',
     },
     section: {
         marginTop: '24px',

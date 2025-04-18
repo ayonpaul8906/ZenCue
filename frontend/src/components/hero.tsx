@@ -49,7 +49,7 @@ export function Hero() {
               Get Started
             </Button>
           </Link>
-          <Link to="/sell">
+          <Link to="/resources">
             <Button size="lg" variant="outline" className="rounded-full text-black">
               Focus
             </Button>

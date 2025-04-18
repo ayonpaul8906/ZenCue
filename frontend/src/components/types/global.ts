@@ -6,8 +6,9 @@ declare global {
 }
 
 export interface Message {
-  sender: 'user' | 'bot';
+  sender: "user" | "bot";
   text: string;
+  timestamp?: string;
 }
 
-export {};
+// export {};

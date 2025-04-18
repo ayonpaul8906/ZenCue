@@ -1,5 +1,6 @@
 // filepath: d:\Final\frontend\src\App.tsx
 import { Routes, Route } from 'react-router-dom';
+import ScrollToTop from "./components/ui/ScrollToTop";
 import Home from './pages/Home';
 import Profile from './pages/Profile';
 import Signup from './pages/signup';
@@ -21,6 +22,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 export default function App() {
   return (
     <>
+    <ScrollToTop /> 
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/about" element={<About />} />

@@ -56,7 +56,7 @@ const NeurodivergentResourcesPage = () => {
                                 Take this self-assessment to understand more about ADHD traits.
                             </p>
                             <Button variant="outline" className="w-full">
-                                <Link to="https://www.clinical-partners.co.uk/for-adults/adult-adhd-add/test-for-adhd" > Take Test </Link>
+                                <Link to="https://www.clinical-partners.co.uk/for-adults/adult-adhd-add/test-for-adhd" target="_blank"> Take Test </Link>
                             </Button>
                         </Card>
                         <Card className="p-6 border border-gray-200 shadow-md hover:shadow-lg transition-all">
