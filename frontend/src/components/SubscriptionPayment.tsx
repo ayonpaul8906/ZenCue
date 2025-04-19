@@ -7,18 +7,22 @@ import { sepolia } from 'viem/chains';
 import toast, { Toaster } from 'react-hot-toast';
 import { Address } from 'viem';
 
-const ethPriceInUsd = 3000;
-
 export default function SubscriptionPayment() {
-  const [selectedPlan, setSelectedPlan] = useState(15);
+  const [selectedPlan, setSelectedPlan] = useState(15); // Default: Weekly
   const [isSent, setIsSent] = useState(false);
   const currentChainId = useChainId();
 
   const { data, sendTransaction, isPending, isSuccess, error, isError } = useSendTransaction();
 
-  const ethValue = (selectedPlan / ethPriceInUsd).toFixed(6);
-
   const receiverAddress = import.meta.env.VITE_RECEIVER_ADDRESS as Address;
+
+  const planValues: Record<number, string> = {
+    15: '0.005',  // Weekly
+    25: '0.015',  // Monthly
+    40: '0.08',   // Yearly
+  };
+
+  const ethValue = planValues[selectedPlan];
 
   const handleClick = () => {
     if (currentChainId !== sepolia.id) {
@@ -32,7 +36,7 @@ export default function SubscriptionPayment() {
     toast.loading('Sending payment...');
     sendTransaction({
       to: receiverAddress,
-      value: parseEther(ethValue),
+      value: parseEther(ethValue), // Directly parses your raw ETH string
     });
   };
 
@@ -45,7 +49,7 @@ export default function SubscriptionPayment() {
   }, [isSuccess]);
 
   useEffect(() => {
-    if (isError && error?.message.toLowerCase().includes('user rejected')) {
+    if (isError && error?.message?.toLowerCase().includes('user rejected')) {
       toast.dismiss();
       toast('Payment cancelled by user ❌');
     }
@@ -67,9 +71,9 @@ export default function SubscriptionPayment() {
         onChange={(e) => setSelectedPlan(Number(e.target.value))}
         className="w-full mb-4 p-2 rounded-md bg-zinc-800 text-white border border-zinc-700 focus:outline-none"
       >
-        <option value={15}>Basic - $15/month</option>
-        <option value={25}>Pro - $25/month</option>
-        <option value={40}>Premium - $40/month</option>
+        <option value={15}>Weekly - 0.005 ETH /Week</option>
+        <option value={25}>Monthly - 0.015 ETH /Month</option>
+        <option value={40}>Yearly - 0.08 ETH /Year</option>
       </select>
 
       <p className="mb-4 text-sm text-zinc-400">

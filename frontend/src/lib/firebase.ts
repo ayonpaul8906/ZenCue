@@ -1,42 +1,57 @@
-import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
-import { getAuth, setPersistence, browserLocalPersistence } from "firebase/auth";
+import { initializeApp, FirebaseOptions } from "firebase/app";
+import { Analytics, getAnalytics, isSupported } from "firebase/analytics";
+import { getAuth, setPersistence, browserLocalPersistence, Auth } from "firebase/auth";
 import { 
     getFirestore, 
-    initializeFirestore,
-    CACHE_SIZE_UNLIMITED,
+    Firestore,
     enableIndexedDbPersistence 
 } from "firebase/firestore";
-
+ 
+// Load Firebase config from environment variables
 // Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY", // 🔑 Public API key (safe to expose on frontend)
-  authDomain: "YOUR_PROJECT_ID.firebaseapp.com", // 🌐 Auth domain
-  projectId: "YOUR_PROJECT_ID", // 🏗️ Project ID
-  storageBucket: "YOUR_PROJECT_ID.appspot.com", // 🗂️ Storage
-  messagingSenderId: "YOUR_SENDER_ID", // 📩 Messaging sender ID
-  appId: "YOUR_APP_ID" // 📱 App ID
-};
-  
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
+    apiKey: "AIzaSyAbu8BtPG8cJo61NUmY0iBzxY_UBq_0gsU",
+    authDomain: "zencue-e92d0.firebaseapp.com",
+    projectId: "zencue-e92d0",
+    storageBucket: "zencue-e92d0.firebasestorage.app",
+    messagingSenderId: "499355593595",
+    appId: "1:499355593595:web:eee29e58eb36e182d9abde"
+  };
 
-// Initialize Auth with persistence
-const auth = getAuth(app);
-setPersistence(auth, browserLocalPersistence)
+let analytics: Analytics | null = null;
+let auth: Auth;
+let db: Firestore;
+
+try {
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+
+  // Initialize Analytics conditionally
+  isSupported().then(yes => yes && (analytics = getAnalytics(app)))
+    .catch(err => console.error('Analytics error:', err));
+
+  // Initialize Auth with persistence
+  auth = getAuth(app);
+  setPersistence(auth, browserLocalPersistence)
     .catch((error) => {
-        console.error("Auth persistence error:", error);
+      console.error("Auth persistence error:", error.message);
     });
 
-// Initialize Firestore with persistence
-const db = getFirestore(app);
-enableIndexedDbPersistence(db).catch((err) => {
+  // Initialize Firestore with persistence
+  db = getFirestore(app);
+  enableIndexedDbPersistence(db).catch((err) => {
     if (err.code === 'failed-precondition') {
-        console.log('Persistence failed: Multiple tabs open');
+      console.warn('Firestore persistence failed: Multiple tabs open');
     } else if (err.code === 'unimplemented') {
-        console.log('Persistence not supported by browser');
+      console.warn('Firestore persistence not supported by browser');
+    } else {
+      console.error('Firestore persistence error:', err);
     }
-});
+  });
 
-export { auth, db };
+} catch (error) {
+  console.error('Firebase initialization error:', error);
+  throw error;
+}
+
+export { analytics, auth, db };

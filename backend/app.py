@@ -5,7 +5,6 @@ import requests
 from dotenv import load_dotenv
 import speech_recognition as sr
 
-
 load_dotenv()
 
 app = Flask(__name__)
@@ -216,8 +215,6 @@ def speak():
     except Exception as e:
         print("🔥 Exception in /speak route:", e)
         return jsonify({"success": False}), 200 
-
-
-
+    
 if __name__ == "__main__":
     app.run(debug=True, port=5000)

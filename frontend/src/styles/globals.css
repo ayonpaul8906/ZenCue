@@ -66,3 +66,23 @@ body {
   background: rgba(255, 255, 255, 0.2);
   border-radius: 8px;
 }
+
+.cloudinary-widget,
+.cloudinary-widget .cloudinary-ui-widget {
+  z-index: 9999 !important;
+}
+
+/* Global styles */
+.perspective {
+  perspective: 1000px;
+}
+.transform-style-preserve-3d {
+  transform-style: preserve-3d;
+}
+.backface-hidden {
+  backface-visibility: hidden;
+}
+.rotate-y-180 {
+  transform: rotateY(180deg);
+}
+

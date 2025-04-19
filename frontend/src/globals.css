@@ -129,3 +129,9 @@
 .custom-scrollbar {
   -webkit-overflow-scrolling: touch;
 }
+
+.cloudinary-widget,
+.cloudinary-widget .cloudinary-ui-widget {
+  z-index: 9999 !important;
+}
+

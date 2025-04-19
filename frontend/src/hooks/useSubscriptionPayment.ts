@@ -1,14 +1,10 @@
-'use client'
-
 import { useSendTransaction, useChainId } from 'wagmi';
 import { parseEther } from 'viem';
 import toast from 'react-hot-toast';
 import { sepolia } from 'viem/chains';
 import { useEffect } from 'react';
 
-const ethPriceInUsd = 3000;
-
-export function useSubscriptionPayment(planUSD: number) {
+export function useSubscriptionPayment(planETH: string) {
   const currentChainId = useChainId();
 
   const {
@@ -20,8 +16,7 @@ export function useSubscriptionPayment(planUSD: number) {
     error,
   } = useSendTransaction();
 
-  const ethValue = (planUSD / ethPriceInUsd).toFixed(6);
-  const receiverAddress = import.meta.env.VITE_RECEIVER_ADDRESS;
+  const receiverAddress = import.meta.env.VITE_RECEIVER_ADDRESS as string; // Ensure this is a valid address as string
 
   const initiatePayment = () => {
     if (currentChainId !== sepolia.id) {
@@ -31,8 +26,8 @@ export function useSubscriptionPayment(planUSD: number) {
 
     toast.loading('Sending payment...');
     sendTransaction({
-      to: receiverAddress as `0x${string}`,
-      value: parseEther(ethValue),
+      to: receiverAddress as `0x${string}`, // Ensure valid Ethereum address format
+      value: parseEther(planETH), // Use the directly passed ETH value
     });
   };
 
@@ -55,6 +50,5 @@ export function useSubscriptionPayment(planUSD: number) {
     isPending,
     isSuccess,
     transactionHash: data?.hash,
-    ethValue,
   };
 }

@@ -18,6 +18,7 @@ import Focus from './pages/resouce/Focus_Enhancers';
 import Forums from './pages/resouce/OnlineForums';
 import SupportGroups from './pages/resouce/SupportGroups';
 import ProtectedRoute from "./components/ProtectedRoute";
+import Documents from './pages/documents';
 
 export default function App() {
   return (
@@ -28,6 +29,7 @@ export default function App() {
         <Route path="/about" element={<About />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
+        <Route path="/docs" element={<Documents />} />
         <Route
           path="/screen"
           element={

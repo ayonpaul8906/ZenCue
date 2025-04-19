@@ -25,8 +25,13 @@ export default function Transactions({ address }: { address: string }) {
       try {
         const response = await fetch(
           `https://api-sepolia.etherscan.io/api?module=account&action=txlist&address=${address}&startblock=0&endblock=99999999&sort=desc&apikey=${import.meta.env.VITE_ETHERSCAN_API_KEY}`
-        );
+        );        
+        
         const data = await response.json();
+
+        if (!data || !data.result || !Array.isArray(data.result)) {
+          throw new Error('Invalid response from Etherscan API');
+        }
 
         const filtered = data.result.filter(
           (tx: Tx) => tx.to?.toLowerCase() === receiver
@@ -45,9 +50,9 @@ export default function Transactions({ address }: { address: string }) {
   }, [address]);
 
   const getPlan = (ethValue: number) => {
-    if (ethValue === 0.005000) return 'Basic';
-    if (ethValue === 0.008333) return 'Pro';
-    if (ethValue === 0.013333) return 'Premium';
+    if (ethValue === 0.005000) return 'Weekly';
+    if (ethValue === 0.008333) return 'Monthly';
+    if (ethValue === 0.013333) return 'Yearly';
     return 'Custom';
   };
 
@@ -96,14 +101,14 @@ export default function Transactions({ address }: { address: string }) {
                   <span className="text-zinc-400">Date:</span>
                   <span>{formatDate(tx.timeStamp)}</span>
                 </div>
-                {/* <a
+                <a
                   href={`https://sepolia.etherscan.io/tx/${tx.hash}`}
                   target="_blank"
                   rel="noreferrer"
                   className="text-blue-500 text-sm underline hover:text-blue-400"
                 >
                   View on Etherscan
-                </a> */}
+                </a>
               </li>
             );
           })}
