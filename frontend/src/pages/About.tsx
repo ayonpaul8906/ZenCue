@@ -1,10 +1,29 @@
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Footer } from "../components/footer";
 import { Navigation } from "../components/navigation";
 
+
 const About: React.FC = () => {
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    setTimeout(() => {
+      setIsLoading(false);
+    }, 500); 
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-900 text-white">
+        <div className="animate-spin rounded-full h-14 w-14 border-t-2 border-b-2 border-purple-500"></div>
+      </div>
+    );
+  }
+
   return (
-    <div><Navigation />
+    <div>
+      <Navigation />
       <div className="min-h-screen bg-[#E6E6FA] text-black-900">
         {/* Hero Section */}
         <motion.section
@@ -17,7 +36,11 @@ const About: React.FC = () => {
             About <span className="text-purple-400">ZenCue</span>
           </h1>
           <p className="text-lg md:text-xl mt-4 text-black-300 max-w-3xl mx-auto">
-            Designed with empathy and powered by AI, ZenCue is your calm digital companion that simplifies complex content, breaks down overwhelming tasks, and helps you stay focused in a noisy online world. Whether you're navigating the web, studying, or working, ZenCue gently guides you every step of the way—on your terms.
+            Designed with empathy and powered by AI, ZenCue is your calm
+            digital companion that simplifies complex content, breaks down
+            overwhelming tasks, and helps you stay focused in a noisy online
+            world. Whether you're navigating the web, studying, or working,
+            ZenCue gently guides you every step of the way—on your terms.
           </p>
         </motion.section>
 
@@ -32,7 +55,9 @@ const About: React.FC = () => {
             >
               <h2 className="text-2xl font-bold text-purple-700">Our Mission</h2>
               <p className="text-black-300 mt-2">
-                To empower neurodivergent individuals by making digital experiences simpler, smarter, and more supportive. We build intuitive tools that reduce overwhelm and enhance everyday focus.
+                To empower neurodivergent individuals by making digital
+                experiences simpler, smarter, and more supportive. We build
+                intuitive tools that reduce overwhelm and enhance everyday focus.
               </p>
             </motion.div>
 
@@ -44,7 +69,9 @@ const About: React.FC = () => {
             >
               <h2 className="text-2xl font-bold text-purple-700">Our Vision</h2>
               <p className="text-black-300 mt-2">
-                To create a digital world where every mind—neurodivergent or not—can thrive with clarity and confidence. We aim to set the standard for accessible, empowering AI support.
+                To create a digital world where every mind—neurodivergent or
+                not—can thrive with clarity and confidence. We aim to set the
+                standard for accessible, empowering AI support.
               </p>
             </motion.div>
           </div>
@@ -52,7 +79,7 @@ const About: React.FC = () => {
 
         {/* Meet the Team Section */}
         <section className="py-16 bg-purple-300">
-          <h2 className="text-center text-3xl font-bold text-purple-7w00 mb-8">
+          <h2 className="text-center text-3xl font-bold text-purple-700 mb-8">
             Meet Our Team
           </h2>
           <div className="flex flex-wrap justify-center gap-8">
@@ -63,9 +90,9 @@ const About: React.FC = () => {
               className="bg-gray-900 p-6 rounded-lg shadow-lg text-center w-64 hover:shadow-pink-500/50 transition-all"
             >
               <img
-                src="../../../images/ayon.jpg"
+                src="../../public/ayon.jpg"
                 alt="Team Member"
-                className="rounded-full mx-auto mb-4 border-4 border-pink-500"
+                className="rounded-full mx-auto mb-4 border-4 border-purple-500"
               />
               <h3 className="text-lg font-bold text-white">Ayon Paul</h3>
               <p className="text-gray-400">Frontend Developer</p>
@@ -78,12 +105,12 @@ const About: React.FC = () => {
               className="bg-gray-900 p-6 rounded-lg shadow-lg text-center w-64 hover:shadow-pink-500/50 transition-all"
             >
               <img
-                src="../../../images/arnab.jpg"
+                src="../../public/arnab.jpg"
                 alt="Team Member"
                 className="rounded-full mx-auto mb-4 border-4 border-purple-500"
               />
               <h3 className="text-lg font-bold text-white">Arnab Ghosh</h3>
-              <p className="text-gray-400">FullStack developer</p>
+              <p className="text-gray-400">FullStack Developer</p>
             </motion.div>
 
             {/* Team Member 3 */}
@@ -93,7 +120,7 @@ const About: React.FC = () => {
               className="bg-gray-900 p-6 rounded-lg shadow-lg text-center w-64 hover:shadow-pink-500/50 transition-all"
             >
               <img
-                src="../../../images/arnab.jpg"
+                src="../../public/soumi.jpg"
                 alt="Team Member"
                 className="rounded-full mx-auto mb-4 border-4 border-purple-500"
               />
@@ -107,7 +134,7 @@ const About: React.FC = () => {
               className="bg-gray-900 p-6 rounded-lg shadow-lg text-center w-64 hover:shadow-pink-500/50 transition-all"
             >
               <img
-                src="../../../images/arnab.jpg"
+                src="../../public/sudipta.jpg"
                 alt="Team Member"
                 className="rounded-full mx-auto mb-4 border-4 border-purple-500"
               />

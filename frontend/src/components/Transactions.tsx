@@ -101,14 +101,7 @@ export default function Transactions({ address }: { address: string }) {
                   <span className="text-zinc-400">Date:</span>
                   <span>{formatDate(tx.timeStamp)}</span>
                 </div>
-                <a
-                  href={`https://sepolia.etherscan.io/tx/${tx.hash}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="text-blue-500 text-sm underline hover:text-blue-400"
-                >
-                  View on Etherscan
-                </a>
+               
               </li>
             );
           })}

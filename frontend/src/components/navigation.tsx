@@ -85,7 +85,7 @@ export function Navigation() {
             onClick={!user ? handleRestrictedAccess : undefined}
             className="transition-colors hover:text-foreground/80 text-foreground"
           >
-            Simplify Screen
+            Smart Explain
           </Link>
           <Link
             to={user ? "/chatbot" : "#"}

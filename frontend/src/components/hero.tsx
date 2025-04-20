@@ -44,14 +44,14 @@ export function Hero() {
           helping you focus, undertsand and navigate with ease.
         </p>
         <div className="mt-10 flex items-center justify-center gap-x-6">
-          <Link to="/login">
+          <Link to="/profile">
             <Button size="lg" className="rounded-full">
-              Get Started
+              Your's Space
             </Button>
           </Link>
           <Link to="/resources">
             <Button size="lg" variant="outline" className="rounded-full text-black">
-              Focus
+              Test Yourself
             </Button>
           </Link>
         </div>

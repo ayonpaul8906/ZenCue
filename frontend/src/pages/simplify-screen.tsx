@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
 import { Navigation } from '../components/navigation';
 import { Footer } from '../components/footer';
@@ -12,43 +12,203 @@ import { Bot, Image as ImageIcon, StopCircle, Volume2 } from 'lucide-react';
 function App() {
     const [responseText, setResponseText] = useState('');
     const [isSpeaking, setIsSpeaking] = useState(false);
-    const [isLoading, setIsLoading] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
     const [imageUrl, setImageUrl] = useState('');
     const [imagePreview, setImagePreview] = useState<string | null>(null);
+    const audioRef = useRef<HTMLAudioElement | null>(null);
+    const isSpeechSynthesis = useRef(false);
 
     const captureRef = useRef<HTMLDivElement>(null);
     const explanationRef = useRef<HTMLDivElement>(null);
 
+    useEffect(() => {
+        setTimeout(() => {
+          setIsLoading(false);
+        }, 500); 
+      }, []);
+
+      if (isLoading) {
+        return (
+          <div className="min-h-screen flex items-center justify-center bg-gray-900 text-white">
+            <div className="animate-spin rounded-full h-14 w-14 border-t-2 border-b-2 border-purple-500"></div>
+          </div>
+        );
+      }
+
+    const formatResponseText = (text: string) => {
+        let formattedText = text;
+
+        // Convert markdown to HTML with styling
+        formattedText = formattedText
+            // Headers (must come before bold since they both use **)
+            .replace(/^###\s(.*)$/gm, "<h3 class='text-xl font-bold text-purple-400 mt-4 mb-2'>$1</h3>")
+            .replace(/^##\s(.*)$/gm, "<h2 class='text-2xl font-bold text-purple-400 mt-6 mb-3'>$1</h2>")
+            .replace(/^#\s(.*)$/gm, "<h1 class='text-3xl font-bold text-purple-400 mt-8 mb-4'>$1</h1>")
+
+            // Bold and Italic
+            .replace(/\*\*(.*?)\*\*/g, "<strong class='text-purple-300'>$1</strong>")
+            .replace(/\*(.*?)\*/g, "<em class='text-blue-300'>$1</em>")
+            .replace(/_(.*?)_/g, "<em class='text-blue-300'>$1</em>")
+
+            // Code blocks
+            .replace(/`(.*?)`/g, "<code class='bg-gray-800/80 px-2 py-0.5 rounded text-pink-400'>$1</code>")
+
+            // Links
+            .replace(/\[([^\]]+)]\(([^)]+)\)/g, '<a href="$2" target="_blank" class="text-blue-400 hover:underline">$1</a>')
+
+            // Lists
+            .replace(/^[-*•]\s*(.*?)$/gm, "<li class='ml-4 text-gray-300'>$1</li>")
+            .replace(/^\d+\.\s*(.*?)$/gm, "<li class='ml-4 text-gray-300'>$1</li>")
+
+            // Blockquotes
+            .replace(/^>\s*(.*?)$/gm, "<blockquote class='border-l-4 border-purple-500 pl-4 my-4 italic text-gray-400'>$1</blockquote>")
+
+            // Paragraphs (handle newlines)
+            .replace(/\n\n/g, "</p><p class='mb-4 text-gray-300'>")
+            .trim();
+
+        // Wrap the entire text in a paragraph if it doesn't start with a special element
+        if (!formattedText.startsWith('<h') &&
+            !formattedText.startsWith('<blockquote') &&
+            !formattedText.startsWith('<li')) {
+            formattedText = `<p class='mb-4 text-gray-300'>${formattedText}</p>`;
+        }
+
+        // Wrap lists in containers
+        formattedText = formattedText
+            .replace(/(<li[^>]*>.*?<\/li>)\s*<li/g, '$1\n<li') // Add newlines between list items
+            .replace(/(<li[^>]*>.*?<\/li>(\n)?)+/g, (match) => {
+                if (match.includes('class="numbered"')) {
+                    return `<ol class="list-decimal list-inside mb-4">${match}</ol>`;
+                }
+                return `<ul class="list-disc list-inside mb-4">${match}</ul>`;
+            });
+
+        return formattedText;
+    };
+
+
+    const stripMarkdownAndHtml = (text: string) => {
+        return text
+            // Remove HTML tags
+            .replace(/<[^>]*>/g, '')
+            // Remove markdown headers
+            .replace(/^###\s*(.*?)$/gm, '$1')
+            .replace(/^##\s*(.*?)$/gm, '$1')
+            .replace(/^#\s*(.*?)$/gm, '$1')
+            // Remove bold and italic markers
+            .replace(/\*\*(.*?)\*\*/g, '$1')
+            .replace(/\*(.*?)\*/g, '$1')
+            .replace(/_(.*?)_/g, '$1')
+            // Remove code blocks
+            .replace(/`(.*?)`/g, '$1')
+            // Remove markdown links, keep text
+            .replace(/\[([^\]]+)]\(([^)]+)\)/g, '$1')
+            // Remove list markers
+            .replace(/^[-*•]\s*/gm, '')
+            .replace(/^\d+\.\s*/gm, '')
+            // Remove blockquote markers
+            .replace(/^>\s*/gm, '')
+            // Clean up extra whitespace
+            .replace(/\s+/g, ' ')
+            .trim();
+    };
+
     const stopSpeaking = () => {
-        // Just for UI toggle
+        // Stop Groq TTS audio if playing
+        if (audioRef.current) {
+            audioRef.current.pause();
+            audioRef.current = null;
+        }
+
+        // Stop browser's Speech Synthesis if active
+        if (isSpeechSynthesis.current) {
+            window.speechSynthesis.cancel();
+            isSpeechSynthesis.current = false;
+        }
+
         setIsSpeaking(false);
     };
 
+    // Update the playGroqAudio function
     const playGroqAudio = async (text: string) => {
         try {
             setIsSpeaking(true);
-            const response = await fetch('http://localhost:5000/speak', {
+            const response = await fetch('http://localhost:5000/chat/speak', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ text }),
             });
 
+            // Handle rate limit or other errors with fallback
+            if (response.status === 429 || response.status === 500) {
+                const data = await response.json();
+                if (data.fallback) {
+                    isSpeechSynthesis.current = true;
+                    const utterance = new SpeechSynthesisUtterance(data.text);
+                    utterance.onend = () => {
+                        setIsSpeaking(false);
+                        isSpeechSynthesis.current = false;
+                    };
+                    utterance.onerror = () => {
+                        setIsSpeaking(false);
+                        isSpeechSynthesis.current = false;
+                    };
+                    window.speechSynthesis.speak(utterance);
+                    return;
+                }
+            }
+
             if (!response.ok) {
-                throw new Error('Failed to fetch audio');
+                throw new Error(`Failed to fetch audio: ${response.status}`);
             }
 
             const blob = await response.blob();
+            if (blob.size === 0) {
+                throw new Error('Received empty audio blob');
+            }
+
             const audioUrl = URL.createObjectURL(blob);
             const audio = new Audio(audioUrl);
+            audioRef.current = audio;
 
-            audio.onended = () => setIsSpeaking(false);
-            audio.play();
+            audio.onended = () => {
+                setIsSpeaking(false);
+                URL.revokeObjectURL(audioUrl);
+                audioRef.current = null;
+            };
+
+            audio.onerror = (e) => {
+                console.error('Audio playback error:', e);
+                setIsSpeaking(false);
+                URL.revokeObjectURL(audioUrl);
+                audioRef.current = null;
+            };
+
+            await audio.play();
         } catch (error) {
             console.error('Audio playback error:', error);
             setIsSpeaking(false);
+            // Try browser TTS as last resort with clean text
+            try {
+                isSpeechSynthesis.current = true;
+                const utterance = new SpeechSynthesisUtterance(stripMarkdownAndHtml(text));
+                utterance.onend = () => {
+                    setIsSpeaking(false);
+                    isSpeechSynthesis.current = false;
+                };
+                utterance.onerror = () => {
+                    setIsSpeaking(false);
+                    isSpeechSynthesis.current = false;
+                };
+                window.speechSynthesis.speak(utterance);
+            } catch (ttsError) {
+                console.error('Browser TTS failed:', ttsError);
+            }
         }
     };
 
+    // Update the handleTextExplain function to properly handle audio errors
     const handleTextExplain = async () => {
         const content = captureRef.current?.innerText || '';
         if (!content.trim()) return;
@@ -61,9 +221,15 @@ function App() {
                 text: content,
             });
 
-            const explanation = res.data.explanation;
+            const explanation = formatResponseText(res.data.explanation);
             setResponseText(explanation);
-            await playGroqAudio(explanation);
+
+            // Play audio with clean text
+            try {
+                await playGroqAudio(res.data.explanation); // Use original response before HTML formatting
+            } catch (audioError) {
+                console.error('Failed to play audio:', audioError);
+            }
 
             setTimeout(() => {
                 explanationRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -88,56 +254,32 @@ function App() {
                 image_url: imageUrl,
             });
 
-            const explanation = res.data.explanation;
+            if (res.data.error) {
+                throw new Error(res.data.error);
+            }
+
+            const explanation = formatResponseText(res.data.explanation || '');
+
+            if (!explanation.trim()) {
+                throw new Error('No explanation received');
+            }
+
             setResponseText(explanation);
-            const handleUrlSubmit = async () => {
-                if (!imageUrl.trim()) return;
+            console.log("✅ Image explanation received");
 
-                stopSpeaking();
-                setIsLoading(true);
-                setImagePreview(imageUrl);
-
-                try {
-                    const res = await axios.post('http://localhost:5000/explain-image', {
-                        image_url: imageUrl,
-                    });
-
-                    const explanation = res.data.explanation;
-                    setResponseText(explanation);
-
-                    console.log("🎯 Explanation from image:", explanation);
-
-
-                    if (explanation && explanation.trim()) {
-                        await playGroqAudio(explanation);
-                    } else {
-                        console.warn("⚠️ No explanation returned from /explain-image");
-                    }
-
-                    setTimeout(() => {
-                        explanationRef.current?.scrollIntoView({ behavior: 'smooth' });
-                    }, 100);
-                } catch (error) {
-                    console.error('Image URL analysis error:', error);
-                    setResponseText('❌ Error processing the image URL.');
-                } finally {
-                    setIsLoading(false);
-                }
-            };
-
-
-            if (explanation && explanation.trim()) {
-                await playGroqAudio(explanation);
-            } else {
-                console.warn("⚠️ No explanation returned from /explain-image");
+            try {
+                await playGroqAudio(stripMarkdownAndHtml(res.data.explanation));
+            } catch (audioError) {
+                console.error('Audio playback failed:', audioError);
             }
 
             setTimeout(() => {
                 explanationRef.current?.scrollIntoView({ behavior: 'smooth' });
             }, 100);
         } catch (error) {
-            console.error('Image URL analysis error:', error);
-            setResponseText('❌ Error processing the image URL.');
+            console.error('Image analysis error:', error);
+            setResponseText('❌ Sorry, I had trouble analyzing that image. Please try another one or check if the URL is correct.');
+            setImagePreview(null);
         } finally {
             setIsLoading(false);
         }
@@ -158,8 +300,7 @@ function App() {
                         transition={{ duration: 0.6 }}
                         className="max-w-4xl mx-auto space-y-8"
                     >
-                        <motion.h1 className='text-center'
-
+                        <motion.h1 className="text-center "
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             transition={{ delay: 0.2 }}
@@ -205,7 +346,7 @@ function App() {
                                         className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white"
                                     >
                                         <Bot className="w-5 h-5" />
-                                        Explain Text
+                                        Explain
                                     </Button>
 
                                     {isSpeaking && (
@@ -274,9 +415,10 @@ function App() {
                             >
                                 <Card className="p-6 bg-gray-900/50 border-gray-800 backdrop-blur-lg">
                                     <h3 className="text-xl font-semibold mb-4 text-purple-400">Explanation:</h3>
-                                    <div className="prose prose-invert prose-purple max-w-none text-gray-300">
-                                        {responseText}
-                                    </div>
+                                    <div
+                                        className="prose prose-invert prose-purple max-w-none"
+                                        dangerouslySetInnerHTML={{ __html: responseText }}
+                                    />
                                 </Card>
                             </motion.div>
                         )}

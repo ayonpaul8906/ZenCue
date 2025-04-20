@@ -17,9 +17,9 @@ export default function SubscriptionPayment() {
   const receiverAddress = import.meta.env.VITE_RECEIVER_ADDRESS as Address;
 
   const planValues: Record<number, string> = {
-    15: '0.005',  // Weekly
-    25: '0.015',  // Monthly
-    40: '0.08',   // Yearly
+    15: '0.005',  // Monthly
+    25: '0.015',  // 3 Months
+    40: '0.08',   // 6 Months
   };
 
   const ethValue = planValues[selectedPlan];
@@ -56,7 +56,8 @@ export default function SubscriptionPayment() {
   }, [isError, error]);
 
   return (
-    <div className="p-4 bg-zinc-900 border border-zinc-700 rounded-xl shadow-lg">
+    <div>
+    {/* <div className="p-4 bg-zinc-900 border border-zinc-700 rounded-xl shadow-lg">
       <Toaster
         position="top-center"
         toastOptions={{
@@ -71,9 +72,9 @@ export default function SubscriptionPayment() {
         onChange={(e) => setSelectedPlan(Number(e.target.value))}
         className="w-full mb-4 p-2 rounded-md bg-zinc-800 text-white border border-zinc-700 focus:outline-none"
       >
-        <option value={15}>Weekly - 0.005 ETH /Week</option>
-        <option value={25}>Monthly - 0.015 ETH /Month</option>
-        <option value={40}>Yearly - 0.08 ETH /Year</option>
+        <option value={15}>Monthly - 0.005 ETH /Week</option>
+        <option value={25}>3 Months - 0.015 ETH /Month</option>
+        <option value={40}>6 Months - 0.08 ETH /Year</option>
       </select>
 
       <p className="mb-4 text-sm text-zinc-400">
@@ -100,7 +101,7 @@ export default function SubscriptionPayment() {
             View on SepoliaScan
           </a>
         </p>
-      )}
+      )} */}
     </div>
   );
 }

@@ -21,6 +21,7 @@ const firebaseConfig = {
 let analytics: Analytics | null = null;
 let auth: Auth;
 let db: Firestore;
+const app = initializeApp(firebaseConfig);
 
 try {
   // Initialize Firebase
@@ -54,4 +55,4 @@ try {
   throw error;
 }
 
-export { analytics, auth, db };
+export { analytics, auth, db, app };
