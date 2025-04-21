@@ -170,7 +170,7 @@ export function Navigation() {
                   className="flex items-center space-x-3 hover:text-purple-700"
                 >
                   <Monitor className="h-5 w-5" />
-                  <span>Simplify Screen</span>
+                  <span>Smart Explain</span>
                 </Link>
                 <Link
                   to={user ? "/chatbot" : "#"}

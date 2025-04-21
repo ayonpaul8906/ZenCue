@@ -10,13 +10,13 @@ import {
 // Load Firebase config from environment variables
 // Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_AUTH_DOMAIN",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_STORAGE_BUCKET",
-  messagingSenderId: "YOUR_MSG_SENDER_ID",
-  appId: "YOUR_APP_ID",
-};
+    apiKey: "AIzaSyAbu8BtPG8cJo61NUmY0iBzxY_UBq_0gsU",
+    authDomain: "zencue-e92d0.firebaseapp.com",
+    projectId: "zencue-e92d0",
+    storageBucket: "zencue-e92d0.firebasestorage.app",
+    messagingSenderId: "499355593595",
+    appId: "1:499355593595:web:eee29e58eb36e182d9abde"
+  };
 
 let analytics: Analytics | null = null;
 let auth: Auth;

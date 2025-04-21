@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { Navigation } from '../components/navigation';
 import { Footer } from '../components/footer';
@@ -17,23 +17,73 @@ function App() {
     const [imagePreview, setImagePreview] = useState<string | null>(null);
     const audioRef = useRef<HTMLAudioElement | null>(null);
     const isSpeechSynthesis = useRef(false);
-
     const captureRef = useRef<HTMLDivElement>(null);
     const explanationRef = useRef<HTMLDivElement>(null);
 
+    const stopSpeaking = useCallback(() => {
+        // Stop Groq TTS audio if playing
+        if (audioRef.current) {
+            audioRef.current.pause();
+            URL.revokeObjectURL(audioRef.current.src); // Clean up the blob URL
+            audioRef.current = null;
+        }
+
+        // Stop browser's Speech Synthesis if active
+        if (isSpeechSynthesis.current) {
+            window.speechSynthesis.cancel();
+            isSpeechSynthesis.current = false;
+        }
+
+        setIsSpeaking(false);
+    }, []);
+
     useEffect(() => {
         setTimeout(() => {
-          setIsLoading(false);
-        }, 500); 
-      }, []);
+            setIsLoading(false);
+        }, 500);
+    }, []);
 
-      if (isLoading) {
+    // Add this near your other useEffect hooks
+    useEffect(() => {
+        // Cleanup function that runs on unmount or page refresh
+        return () => {
+            // Stop Groq TTS audio if playing
+            if (audioRef.current) {
+                audioRef.current.pause();
+                audioRef.current = null;
+            }
+
+            // Stop browser's Speech Synthesis if active
+            if (isSpeechSynthesis.current) {
+                window.speechSynthesis.cancel();
+                isSpeechSynthesis.current = false;
+            }
+
+            setIsSpeaking(false);
+        };
+    }, []); // Empty dependency array means this runs on mount and cleanup
+
+    // Also add beforeunload event listener
+    useEffect(() => {
+        const handleBeforeUnload = () => {
+            stopSpeaking();
+        };
+
+        window.addEventListener('beforeunload', handleBeforeUnload);
+
+        // Cleanup
+        return () => {
+            window.removeEventListener('beforeunload', handleBeforeUnload);
+        };
+    }, []);
+
+    if (isLoading) {
         return (
-          <div className="min-h-screen flex items-center justify-center bg-gray-900 text-white">
-            <div className="animate-spin rounded-full h-14 w-14 border-t-2 border-b-2 border-purple-500"></div>
-          </div>
+            <div className="min-h-screen flex items-center justify-center bg-gray-900 text-white">
+                <div className="animate-spin rounded-full h-14 w-14 border-t-2 border-b-2 border-purple-500"></div>
+            </div>
         );
-      }
+    }
 
     const formatResponseText = (text: string) => {
         let formattedText = text;
@@ -112,22 +162,6 @@ function App() {
             // Clean up extra whitespace
             .replace(/\s+/g, ' ')
             .trim();
-    };
-
-    const stopSpeaking = () => {
-        // Stop Groq TTS audio if playing
-        if (audioRef.current) {
-            audioRef.current.pause();
-            audioRef.current = null;
-        }
-
-        // Stop browser's Speech Synthesis if active
-        if (isSpeechSynthesis.current) {
-            window.speechSynthesis.cancel();
-            isSpeechSynthesis.current = false;
-        }
-
-        setIsSpeaking(false);
     };
 
     // Update the playGroqAudio function
@@ -348,17 +382,6 @@ function App() {
                                         <Bot className="w-5 h-5" />
                                         Explain
                                     </Button>
-
-                                    {isSpeaking && (
-                                        <Button
-                                            onClick={stopSpeaking}
-                                            variant="destructive"
-                                            className="flex items-center gap-2"
-                                        >
-                                            <StopCircle className="w-5 h-5" />
-                                            Stop Speaking
-                                        </Button>
-                                    )}
                                 </div>
 
                                 <div className="space-y-4">
@@ -396,14 +419,38 @@ function App() {
                         </Card>
 
                         {(isSpeaking || isLoading) && (
-                            <motion.div
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                className="flex items-center justify-center gap-2 p-3 bg-purple-600/90 text-white rounded-full shadow-lg max-w-fit mx-auto backdrop-blur-sm"
-                            >
-                                {isSpeaking && <Volume2 className="w-5 h-5 animate-pulse" />}
-                                <span>{isSpeaking ? '🔊 Speaking...' : '⏳ Analyzing...'}</span>
-                            </motion.div>
+                            <div className="flex items-center justify-center gap-4">
+                                <motion.div
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    className="flex items-center gap-2 p-3 bg-purple-600/90 text-white rounded-full shadow-lg backdrop-blur-sm"
+                                >
+                                    {isSpeaking && (
+                                        <>
+                                            <Volume2 className="w-5 h-5 animate-pulse" />
+                                            <span>🔊 Speaking...</span>
+                                        </>
+                                    )}
+                                    {isLoading && !isSpeaking && <span>⏳ Analyzing...</span>}
+                                </motion.div>
+
+                                {isSpeaking && (
+                                    <motion.div
+                                        initial={{ opacity: 0, scale: 0.9 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                    >
+                                        <Button
+                                            onClick={stopSpeaking}
+                                            variant="destructive"
+                                            size="sm"
+                                            className="h-10 px-3 bg-red-600/90 hover:bg-red-700/90 rounded-full shadow-lg"
+                                        >
+                                            <StopCircle className="w-5 h-5" />
+                                            Stop Speaking
+                                        </Button>
+                                    </motion.div>
+                                )}
+                            </div>
                         )}
 
                         {responseText && (

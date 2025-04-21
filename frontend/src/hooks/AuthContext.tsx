@@ -105,7 +105,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   if (isLoading) {
-    return <div>Loading...</div>; // Or your loading component
+    return <div className="min-h-screen flex items-center justify-center bg-gray-900 text-white">
+    <div className="animate-spin rounded-full h-14 w-14 border-t-2 border-b-2 border-purple-500"></div>
+  </div>; 
   }
 
   return (
