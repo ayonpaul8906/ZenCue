@@ -22,9 +22,9 @@ const Magnifier = () => {
   const handleMouseOut = () => setHovered(false);
 
   return (
-    <div className="magnifier-container mt-12 p-6 bg-gray-100 rounded-xl">
+    <div className="magnifier-container mt-8 p-6 bg-gray-800 rounded-xl border border-gray-700">
       <motion.h2
-        className="text-3xl font-medium text-purple-700"
+        className="text-3xl font-medium text-purple-300"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 1 }}
@@ -43,7 +43,7 @@ const Magnifier = () => {
           type="file"
           accept="image/*"
           onChange={handleImageUpload}
-          className="border-2 p-2 rounded-md"
+          className="border-2 border-gray-600 bg-gray-700 text-gray-100 p-2 rounded-md focus:ring-purple-500 focus:border-purple-500"
         />
       </motion.div>
 

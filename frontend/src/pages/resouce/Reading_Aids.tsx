@@ -6,31 +6,41 @@ import { motion } from "framer-motion";
 import { ArrowLeft } from "lucide-react";
 
 const ReadingAidsPage = () => {
-    const navigate = useNavigate();
-    return (
-        <div className="container mx-auto p-6">
-            <motion.button
-                onClick={() => navigate("/resources")}
-                className="flex items-center gap-2 text-purple-600 hover:text-purple-800 font-semibold mb-8"
-                initial={{ x: -20, opacity: 0 }}
-                animate={{ x: 0, opacity: 1 }}
-            >
-                <ArrowLeft size={20} />
-                Back to Resources
-            </motion.button>
+  const navigate = useNavigate();
+  return (
+    <div className="bg-gray-900 text-gray-100 min-h-screen p-6">
+      <div className="container mx-auto">
+        <motion.button
+          onClick={() => navigate("/resources")}
+          className="flex items-center gap-2 text-purple-400 hover:text-purple-300 font-semibold mb-8"
+          initial={{ x: -20, opacity: 0 }}
+          animate={{ x: 0, opacity: 1 }}
+          transition={{ duration: 0.3 }}
+        >
+          <ArrowLeft size={20} />
+          Back to Resources
+        </motion.button>
 
-            <header className="text-center mb-12">
-                <h1 className="text-4xl font-semibold text-purple-800">Reading Aids for Neurodivergent Users</h1>
-                <p className="mt-4 text-lg text-gray-600">
-                    Discover tools and resources to help make reading easier and more accessible.
-                </p>
-            </header>
+        <header className="text-center mb-12">
+          <h1 className="text-4xl font-semibold text-purple-300">Reading Aids for Neurodivergent Users</h1>
+          <p className="mt-4 text-lg text-gray-400">
+            Discover tools and resources to help make reading easier and more
+            accessible.
+          </p>
+        </header>
 
-            <TextToSpeech />
-            <Magnifier />
-            <EReader />
+        <div className="bg-gray-800 rounded-lg shadow-md p-6 mb-6 border border-gray-700">
+          <TextToSpeech />
         </div>
-    );
+        <div className="bg-gray-800 rounded-lg shadow-md p-6 mb-6 border border-gray-700">
+          <Magnifier />
+        </div>
+        <div className="bg-gray-800 rounded-lg shadow-md p-6 border border-gray-700">
+          <EReader />
+        </div>
+      </div>
+    </div>
+  );
 };
 
 export default ReadingAidsPage;

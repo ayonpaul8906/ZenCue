@@ -37,30 +37,33 @@ export default function NeurodivergentQuiz() {
 
   const getResult = () => {
     const total = answers.reduce((sum, a) => sum + a, 0);
-    if (total >= 36) return "You may have strong neurodivergent traits. Consider exploring further or consulting a professional.";
-    if (total >= 24) return "You show some signs of neurodivergent patterns. You might benefit from learning more about ADHD, dyslexia, or autism.";
+    if (total >= 36)
+      return "You may have strong neurodivergent traits. Consider exploring further or consulting a professional.";
+    if (total >= 24)
+      return "You show some signs of neurodivergent patterns. You might benefit from learning more about ADHD, dyslexia, or autism.";
     return "You may have fewer traits related to neurodivergence. Everyone’s brain is different — self-awareness is key!";
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#fdfbff] to-[#f5ebff] p-6 md:p-12 text-gray-800 font-sans relative overflow-hidden">
+    <div className="min-h-screen bg-gray-900 text-gray-100 p-6 md:p-12 font-sans relative overflow-hidden">
       <motion.button
         onClick={() => navigate("/resources")}
-        className="flex items-center gap-2 text-purple-600 hover:text-purple-800 font-semibold mb-4 transition"
+        className="flex items-center gap-2 text-purple-400 hover:text-purple-300 font-semibold mb-4 transition"
         initial={{ x: -20, opacity: 0 }}
         animate={{ x: 0, opacity: 1 }}
+        transition={{ duration: 0.3 }}
       >
         <ArrowLeft size={20} />
         Back to Resources
       </motion.button>
 
-      <div className="max-w-3xl mx-auto bg-white rounded-3xl shadow-2xl p-8 relative overflow-hidden">
+      <div className="max-w-3xl mx-auto bg-gray-800 rounded-3xl shadow-2xl p-8 relative overflow-hidden border border-gray-700">
         <motion.div
           initial={{ scale: 0.95, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ duration: 0.3 }}
         >
-          <h1 className="text-3xl font-bold text-purple-700 mb-6 flex items-center gap-2">
+          <h1 className="text-3xl font-bold text-purple-400 mb-6 flex items-center gap-2">
             Neurodivergent Quiz
           </h1>
 
@@ -70,9 +73,9 @@ export default function NeurodivergentQuiz() {
                 <div className="text-sm text-gray-500 mb-2">
                   Question {currentQuestion + 1} / {questions.length}
                 </div>
-                <div className="w-full h-3 bg-purple-100 rounded-full overflow-hidden">
+                <div className="w-full h-3 bg-gray-700 rounded-full overflow-hidden">
                   <motion.div
-                    className="h-3 bg-purple-600 rounded-full"
+                    className="h-3 bg-purple-400 rounded-full"
                     initial={{ width: 0 }}
                     animate={{
                       width: `${((currentQuestion + 1) / questions.length) * 100}%`,
@@ -83,7 +86,7 @@ export default function NeurodivergentQuiz() {
               </div>
 
               <motion.h2
-                className="text-xl font-semibold text-purple-800 mb-4"
+                className="text-xl font-semibold text-purple-300 mb-4"
                 key={currentQuestion}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -105,7 +108,7 @@ export default function NeurodivergentQuiz() {
                     onClick={() => handleAnswer(score)}
                     whileHover={{ scale: 1.03 }}
                     whileTap={{ scale: 0.97 }}
-                    className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-purple-600 text-white font-medium hover:bg-purple-700 transition"
+                    className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-purple-500 text-white font-medium hover:bg-purple-600 transition"
                   >
                     <span className="text-xl">{icon}</span> {label}
                   </motion.button>
@@ -119,8 +122,8 @@ export default function NeurodivergentQuiz() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
             >
-              <h2 className="text-3xl font-bold text-purple-700 mb-4">🎉 Result</h2>
-              <p className="text-lg text-gray-700 max-w-xl mx-auto mb-6">
+              <h2 className="text-3xl font-bold text-purple-400 mb-4">🎉 Result</h2>
+              <p className="text-lg text-gray-400 max-w-xl mx-auto mb-6">
                 {getResult()}
               </p>
               <button
@@ -129,7 +132,7 @@ export default function NeurodivergentQuiz() {
                   setCurrentQuestion(0);
                   setShowResult(false);
                 }}
-                className="mt-4 px-6 py-3 bg-purple-600 text-white rounded-full shadow-lg hover:bg-purple-700"
+                className="mt-4 px-6 py-3 bg-purple-500 text-white rounded-full shadow-lg hover:bg-purple-600"
               >
                 Restart Quiz
               </button>

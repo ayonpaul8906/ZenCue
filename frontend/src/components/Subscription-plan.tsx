@@ -205,7 +205,7 @@ export function SubscriptionPlan() {
                             </Button>
                           ) : (
                             <Button
-                              className="w-full bg-yellow-500 hover:bg-yellow-600 text-white shadow-md"
+                              className="w-full bg-purple-400 hover:bg-purple-600 text-white shadow-md"
                               onClick={connectWallet}
                             >
                               Please Connect Wallet
@@ -275,7 +275,7 @@ export function SubscriptionPlan() {
                             </Button>
                           ) : (
                             <Button
-                              className="w-full bg-yellow-500 hover:bg-yellow-600 text-white shadow-md"
+                              className="w-full bg-purple-400 hover:bg-purple-600 text-white shadow-md"
                               onClick={connectWallet}
                             >
                               Please Connect Wallet

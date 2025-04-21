@@ -37,12 +37,13 @@ export default function ArticlesPage() {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#fdfbff] to-[#f5ebff] p-6 md:p-12 text-gray-800 font-sans">
+    <div className="min-h-screen bg-gray-900 text-gray-100 p-6 md:p-12 font-sans">
       <motion.button
         onClick={() => navigate("/resources")}
-        className="flex items-center gap-2 text-purple-600 hover:text-purple-800 font-semibold mb-8"
+        className="flex items-center gap-2 text-purple-400 hover:text-purple-300 font-semibold mb-8"
         initial={{ x: -20, opacity: 0 }}
         animate={{ x: 0, opacity: 1 }}
+        transition={{ duration: 0.3 }}
       >
         <ArrowLeft size={20} />
         Back to Resources
@@ -50,15 +51,16 @@ export default function ArticlesPage() {
 
       <div className="text-center mb-10">
         <motion.h1
-          className="text-4xl font-extrabold text-purple-700 mb-4"
+          className="text-4xl font-extrabold text-purple-400 mb-4"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.3 }}
         >
           Articles on Neurodivergence
         </motion.h1>
-        <p className="text-lg text-gray-500">
-          Explore insightful articles to learn more about ADHD, dyslexia, and neurodivergence.
+        <p className="text-lg text-gray-400">
+          Explore insightful articles to learn more about ADHD, dyslexia, and
+          neurodivergence.
         </p>
       </div>
 
@@ -66,7 +68,7 @@ export default function ArticlesPage() {
         {articles.map((article, index) => (
           <motion.div
             key={index}
-            className="bg-white rounded-xl shadow-lg overflow-hidden transition-transform transform hover:scale-105"
+            className="bg-gray-800 rounded-xl shadow-md overflow-hidden transition-transform transform hover:scale-105 border border-gray-700"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: index * 0.2 }}
@@ -78,19 +80,19 @@ export default function ArticlesPage() {
             />
             <div className="p-6">
               <motion.h3
-                className="text-xl font-bold text-purple-700 mb-4"
+                className="text-xl font-bold text-purple-300 mb-4"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.3 }}
               >
                 {article.title}
               </motion.h3>
-              <p className="text-gray-600 mb-4">{article.description}</p>
+              <p className="text-gray-500 mb-4">{article.description}</p>
               <motion.a
                 href={article.link}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-purple-600 font-semibold hover:text-purple-800"
+                className="text-purple-400 font-semibold hover:text-purple-300"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.3 }}

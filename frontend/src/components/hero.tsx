@@ -4,12 +4,13 @@ import { Button } from "./ui/button"
 import { Link } from "react-router-dom"
 
 export function Hero() {
-  const vantaRef = useRef(null)
+  const vantaRef = useRef<HTMLDivElement>(null)
   const [vantaEffect, setVantaEffect] = useState<any>(null)
 
-  useEffect(() => {
-    if (!vantaEffect) {
-      import("vanta/dist/vanta.halo.min").then((VANTA) => {
+  // Helper to initialize Vanta
+  const initializeVanta = () => {
+    import("vanta/dist/vanta.halo.min").then((VANTA) => {
+      if (vantaRef.current && !vantaEffect) {
         const effect = VANTA.default({
           el: vantaRef.current,
           THREE: THREE,
@@ -26,15 +27,41 @@ export function Hero() {
           yOffset: 0.25,
         })
         setVantaEffect(effect)
-      })
+      }
+    })
+  }
+
+  useEffect(() => {
+    initializeVanta()
+    // Listen for WebGL context loss/restoration
+    const canvas = vantaRef.current?.querySelector("canvas")
+    const handleContextLost = () => {
+      vantaEffect?.destroy?.()
+      setVantaEffect(null)
+    }
+    const handleContextRestored = () => {
+      initializeVanta()
+    }
+    if (canvas) {
+      canvas.addEventListener("webglcontextlost", handleContextLost)
+      canvas.addEventListener("webglcontextrestored", handleContextRestored)
     }
     return () => {
       vantaEffect?.destroy?.()
+      if (canvas) {
+        canvas.removeEventListener("webglcontextlost", handleContextLost)
+        canvas.removeEventListener("webglcontextrestored", handleContextRestored)
+      }
     }
-  }, [vantaEffect])
+    // eslint-disable-next-line
+  }, []) // Only run once on mount/unmount
 
   return (
-    <div ref={vantaRef} className="relative min-h-screen flex items-center justify-center text-white font-sans">
+    <div
+      ref={vantaRef}
+      className="relative min-h-screen flex items-center justify-center text-white font-sans"
+      style={{ backgroundColor: "#0a0a0a" }} // fallback background
+    >
       <div className="relative z-10 max-w-5xl px-6 py-24 sm:py-32 lg:px-8 text-center">
         <h1 className="text-4xl font-bold tracking-tight sm:text-6xl">
           Your smart & personalized AI companion.
