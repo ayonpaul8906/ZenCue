@@ -6,7 +6,7 @@ import { useAuth } from "../hooks/AuthContext"; // Assuming this is your modifie
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
 import { CheckCircleIcon } from "@heroicons/react/24/solid";
-import { getFirestore, doc, setDoc, onSnapshot } from "firebase/firestore";
+import { getFirestore, doc, setDoc, onSnapshot, serverTimestamp } from "firebase/firestore";
 import { app } from "../lib/firebase"; // Assuming your Firebase app is initialized here
 
 const featuredPrompts = [
@@ -127,14 +127,33 @@ export function SubscriptionPlan() {
       return;
     }
     try {
-      const userDocRef = doc(firestore, 'users', user.uid);
-      await setDoc(userDocRef, { hasStartedFreePlan: true }, { merge: true });
+      // Store in subscriptions collection
+      const subscriptionRef = doc(firestore, 'subscriptions', user.uid);
+      await setDoc(subscriptionRef, {
+        userId: user.uid,
+        planId: 1, 
+        planTitle: 'Free',
+        price: '0',
+        ethValue: '0',
+        purchaseDate: serverTimestamp(),
+        status: 'active' 
+      });
+
+      // Also update user document
+      const userRef = doc(firestore, 'users', user.uid);
+      await setDoc(userRef, { 
+        hasStartedFreePlan: true,
+        totalTextExplanations: 0,
+        totalImageExplanations: 0
+      }, { merge: true });
+
       toast.success("You've started with the free plan!");
+      setFreePlanClicked(true);
     } catch (error) {
       console.error("Error starting free plan:", error);
       toast.error("Failed to start the free plan. Please try again.");
     }
-  };
+};
 
   return (
     <section className="py-24 bg-zinc-900">

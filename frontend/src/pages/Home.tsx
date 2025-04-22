@@ -1,11 +1,24 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Navigation } from "../components/navigation";
 import { Hero } from "../components/hero";
 import { SubscriptionPlan } from "../components/Subscription-plan";
 import { Footer } from "../components/footer";
+import { useLocation, useNavigate } from "react-router-dom";
+import { toast } from 'react-hot-toast';
 
 export default function Home() {
   const [isLoading, setIsLoading] = useState(true);
+  const location = useLocation();
+  const navigate = useNavigate();
+  const toastShownRef = useRef(false);
+  
+  useEffect(() => {
+    if (location.state?.message && !toastShownRef.current) {
+      toastShownRef.current = true;
+      toast.error(location.state.message);
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location, navigate]);
 
   useEffect(() => {
     setTimeout(() => {

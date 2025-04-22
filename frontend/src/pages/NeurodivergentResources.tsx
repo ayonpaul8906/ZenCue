@@ -212,6 +212,8 @@ import { Link } from "react-router-dom";
 import { ArrowRight } from 'lucide-react'; // Example icon import
 import { useAuth } from '../hooks/AuthContext';
 import { logActivity, ActivityTypes } from '../lib/activity'; 
+import { getUserUsage, getPlanLimits } from '../lib/usageService';
+import { Navigate } from "react-router-dom";
 
 
 const NeurodivergentResourcesPage = () => {
@@ -229,10 +231,19 @@ const NeurodivergentResourcesPage = () => {
   };
 
   const [isLoading, setIsLoading] = useState(true);
-
   const { user } = useAuth();
-
   const hasLoggedRef = useRef(false);
+  const [usage, setUsage] = useState<any>(null);
+  const [planLimits, setPlanLimits] = useState<any>(null);
+
+  useEffect(() => {
+    if (user?.uid) {
+      getUserUsage(user.uid).then(u => {
+        setUsage(u);
+        setPlanLimits(getPlanLimits(u.plan));
+      });
+    }
+  }, [user]);
 
   useEffect(() => {
     if (user?.uid && !hasLoggedRef.current) {
@@ -250,6 +261,14 @@ const NeurodivergentResourcesPage = () => {
         setIsLoading(false);
       }, 500); 
     }, []);
+
+    if (!user?.uid) {
+      return <Navigate to="/login" />;
+    }
+    
+    if (planLimits && !planLimits.mindzone) {
+      return <Navigate to="/" replace state={{ message: "Upgrade your plan to access Mindzone." }} />;
+    }
   
     if (isLoading) {
       return (

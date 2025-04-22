@@ -5,6 +5,7 @@ declare global {
   }
 }
 
+
 export interface Message {
   id?: string;
   sender: "user" | "bot";
@@ -13,6 +14,14 @@ export interface Message {
   userId?: string;
   conversationId?: string;
   contextId?: string;
+}
+
+export interface UserUsage {
+  explanationsToday: number;
+  chatsToday: number;
+  lastUsed: any; // or Timestamp
+  plan: "free" | "silver" | "gold" | "platinum" | null;
+  freeClaimed: boolean;
 }
 
 

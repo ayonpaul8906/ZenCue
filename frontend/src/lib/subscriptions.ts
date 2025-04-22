@@ -18,10 +18,10 @@ const getExpiryDate = (planId: number): Timestamp | null => {
       expiryTime = new Date(now.setMonth(now.getMonth() + 1));
       break;
     case 3: // Gold Plan
-      expiryTime = new Date(now.setMonth(now.getMonth() + 3));
+      expiryTime = new Date(now.setMonth(now.getMonth() + 1));
       break;
     case 4: // Platinum Plan
-      expiryTime = new Date(now.setMonth(now.getMonth() + 6));
+      expiryTime = new Date(now.setMonth(now.getMonth() + 1));
       break;
     default:
       return null; // Unknown plan
@@ -52,6 +52,13 @@ export const storeSubscription = async (subscriptionData: SubscriptionData) => {
       status: 'active', // Initial status is active
     });
 
+    if (subscriptionData.planId === 1) {
+      const userRef = doc(db, 'users', user.uid);
+      await setDoc(userRef, {
+        hasStartedFreePlan: true
+      }, { merge: true });
+    }
+    
     console.log('Subscription data stored successfully for user:', user.uid, 'Expiry:', expiryDate?.toDate());
     return true;
   } catch (error: any) {

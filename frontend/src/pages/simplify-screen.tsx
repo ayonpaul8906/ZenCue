@@ -10,6 +10,8 @@ import { cn } from "../lib/utils";
 import { Bot, Image as ImageIcon, StopCircle, Volume2 } from 'lucide-react';
 import { useAuth } from '../hooks/AuthContext';
 import { logActivity, ActivityTypes } from '../lib/activity';
+import { getUserUsage, incrementUsage, getPlanLimits } from '../lib/usageService';
+import { toast } from "react-hot-toast";
 
 
 function App() {
@@ -22,6 +24,10 @@ function App() {
     const isSpeechSynthesis = useRef(false);
     const captureRef = useRef<HTMLDivElement>(null);
     const explanationRef = useRef<HTMLDivElement>(null);
+    const { user } = useAuth();
+    const hasLoggedRef = useRef(false);
+    const [usage, setUsage] = useState<any>(null);
+    const [planLimits, setPlanLimits] = useState<any>(null);
 
     const stopSpeaking = useCallback(() => {
         // Stop Groq TTS audio if playing
@@ -40,8 +46,14 @@ function App() {
         setIsSpeaking(false);
     }, []);
 
-    const { user } = useAuth();
-    const hasLoggedRef = useRef(false);
+    useEffect(() => {
+        if (user?.uid) {
+            getUserUsage(user.uid).then(u => {
+                setUsage(u);
+                setPlanLimits(getPlanLimits(u.plan));
+            });
+        }
+    }, [user]);
 
     useEffect(() => {
         if (user?.uid && !hasLoggedRef.current) {
@@ -181,6 +193,34 @@ function App() {
             .trim();
     };
 
+    // Place this component near the top of your file
+    const UsageLimits = ({ usage, planLimits }: { usage: any; planLimits: any }) => {
+        const textLimitsLeft = Math.max(0, (planLimits?.textexplanations ?? 0) - (usage?.textexplanations ?? 0));
+        const imageLimitsLeft = Math.max(0, (planLimits?.imageexplanations ?? 0) - (usage?.imageexplanations ?? 0));
+    
+        return (
+            <motion.div
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="fixed top-20 right-4 z-50"
+            >
+                <div className="bg-gray-900/90 backdrop-blur-md border border-purple-500/20 rounded-xl p-4 shadow-xl">
+                    <h3 className="text-sm font-semibold text-purple-400 mb-2">Limits Left</h3>
+                    <div className="space-y-2">
+                        <div className="flex items-center gap-2">
+                            <span className="text-xs text-gray-400">Text Explains:</span>
+                            <span className="text-sm font-bold text-purple-300">{textLimitsLeft}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <span className="text-xs text-gray-400">Image Explains:</span>
+                            <span className="text-sm font-bold text-purple-300">{imageLimitsLeft}</span>
+                        </div>
+                    </div>
+                </div>
+            </motion.div>
+        );
+    };
+
     // Update the playGroqAudio function
     const playGroqAudio = async (text: string) => {
         try {
@@ -264,6 +304,21 @@ function App() {
         const content = captureRef.current?.innerText || '';
         if (!content.trim()) return;
 
+        // Usage limit check
+        if (!user?.uid) {
+            toast.error("You must be logged in to use this feature.");
+            return;
+        }
+        if (usage && planLimits && usage.textexplanations >= planLimits.textexplanations) {
+            toast.error(`You have reached your text explanation limit (${planLimits.textexplanations}).`);
+            return;
+        }
+
+        if (usage && planLimits && usage.imageexplanations >= planLimits.imageexplanations) {
+            toast.error(`You have reached your image explanation limit (${planLimits.imageexplanations}).`);
+            return;
+        }
+
         stopSpeaking();
         setIsLoading(true);
 
@@ -274,6 +329,13 @@ function App() {
 
             const explanation = formatResponseText(res.data.explanation);
             setResponseText(explanation);
+
+            // Increment usage count in Firestore
+            // After incrementUsage, fetch latest usage from Firestore
+            await incrementUsage(user.uid, "textexplanations");
+            const updatedUsage = await getUserUsage(user.uid);
+            setUsage(updatedUsage);
+
 
             // Play audio with clean text
             try {
@@ -295,35 +357,50 @@ function App() {
 
     const handleUrlSubmit = async () => {
         if (!imageUrl.trim()) return;
-
+    
+        // Check auth and limits first
+        if (!user?.uid) {
+            toast.error("You must be logged in to use this feature.");
+            return;
+        }
+        if (usage && planLimits && usage.imageexplanations >= planLimits.imageexplanations) {
+            toast.error(`You have reached your image explanation limit (${planLimits.imageexplanations}).`);
+            return;
+        }
+    
         stopSpeaking();
         setIsLoading(true);
         setImagePreview(imageUrl);
-
+    
         try {
             const res = await axios.post('http://localhost:5000/explain-image', {
                 image_url: imageUrl,
             });
-
+    
             if (res.data.error) {
                 throw new Error(res.data.error);
             }
-
+    
             const explanation = formatResponseText(res.data.explanation || '');
-
+    
             if (!explanation.trim()) {
                 throw new Error('No explanation received');
             }
-
+    
+            // Increment usage count and update state
+            await incrementUsage(user.uid, "imageexplanations");
+            const updatedUsage = await getUserUsage(user.uid);
+            setUsage(updatedUsage);
+    
             setResponseText(explanation);
             console.log("✅ Image explanation received");
-
+    
             try {
                 await playGroqAudio(stripMarkdownAndHtml(res.data.explanation));
             } catch (audioError) {
                 console.error('Audio playback failed:', audioError);
             }
-
+    
             setTimeout(() => {
                 explanationRef.current?.scrollIntoView({ behavior: 'smooth' });
             }, 100);
@@ -340,6 +417,7 @@ function App() {
     return (
         <div>
             <Navigation />
+            <UsageLimits usage={usage} planLimits={planLimits} />
             <div className="min-h-screen bg-black text-white">
                 {/* Purple gradient overlay */}
                 <div className="fixed inset-0 bg-gradient-to-br from-purple-900/20 to-black pointer-events-none" />

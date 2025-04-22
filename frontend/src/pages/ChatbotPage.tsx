@@ -19,6 +19,7 @@ import {
 import { useAuth } from "../hooks/AuthContext";
 import TypewriterText from '../components/ui/TypewriterText';
 import { logActivity, ActivityTypes } from '../lib/activity';
+import { getUserUsage, incrementUsage, getPlanLimits } from '../lib/usageService';
 
 export default function ChatbotFancy() {
     const [input, setInput] = useState("");
@@ -28,6 +29,9 @@ export default function ChatbotFancy() {
     const recognitionRef = useRef<any>(null);
     const { user } = useAuth();
     const unsubscribeRef = useRef<any>(null);
+    const hasLoggedRef = useRef(false);
+    const [usage, setUsage] = useState<any>(null);
+    const [planLimits, setPlanLimits] = useState<any>(null);
 
     // Scroll state management
     const [isScrollLocked, setIsScrollLocked] = useState(true);
@@ -47,7 +51,14 @@ export default function ChatbotFancy() {
         }
     };
 
-    const hasLoggedRef = useRef(false);
+    useEffect(() => {
+        if (user?.uid) {
+          getUserUsage(user.uid).then(u => {
+            setUsage(u);
+            setPlanLimits(getPlanLimits(u.plan));
+          });
+        }
+      }, [user]);
 
     useEffect(() => {
         if (user?.uid && !hasLoggedRef.current) {
@@ -201,10 +212,49 @@ export default function ChatbotFancy() {
             return message;
         }
     };
+    
+    const ChatLimits = ({ usage, planLimits }: { usage: any; planLimits: any }) => {
+        const chatsLeft = Math.max(0, (planLimits?.chats ?? 0) - (usage?.chatsToday ?? 0));
+        
+        return (
+            <motion.div
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="fixed top-20 right-4 z-50"
+            >
+                <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-4 shadow-xl">
+                    <div className="flex items-center gap-3">
+                        <div className="flex flex-col">
+                            <span className="text-sm font-semibold text-purple-400">Daily Chats Left</span>
+                            <div className="flex items-center gap-2 mt-1">
+                                <span className="text-2xl font-bold text-white">{chatsLeft}</span>
+                                <span className="text-xs text-gray-400">remaining</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </motion.div>
+        );
+    };
 
     const handleSend = async () => {
         if (!input.trim() || isLoading) return;
+    
+        // Check auth and limits
+        if (!user?.uid) {
+            toast.error("You must be logged in to use this feature.");
+            return;
+        }
 
+        // Get latest usage before checking limits
+        const currentUsage = await getUserUsage(user.uid);
+        const currentLimits = getPlanLimits(currentUsage.plan);
+
+        if (currentUsage.chatsToday >= currentLimits.chats) {
+            toast.error(`You have reached your daily chat limit (${currentLimits.chats}).`);
+            return;
+        }
+    
         try {
             setIsLoading(true);
             const userMsg: Message = {
@@ -212,22 +262,28 @@ export default function ChatbotFancy() {
                 text: input.trim(),
                 timestamp: new Date()
             };
-            
+
             setInput("");
             setIsScrollLocked(true);
-
+    
+            // Save user message first
             await saveMessageToFirebase(userMsg);
-
+    
+            // Increment chat usage and get updated usage
+            await incrementUsage(user.uid, "chatsToday");
+            const updatedUsage = await getUserUsage(user.uid);
+            setUsage(updatedUsage);
+    
+            // Get chat history
             const conversationHistory = messages.concat(userMsg).map(msg => ({
                 role: msg.sender === "user" ? "user" : "assistant",
                 content: msg.text
             }));
-
+    
+            // Get bot response
             const response = await fetch("http://localhost:5000/chat/text", {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     messages: conversationHistory,
                     text: userMsg.text
@@ -235,33 +291,28 @@ export default function ChatbotFancy() {
             });
 
             if (!response.ok) throw new Error("Network response was not ok");
-
+    
             const data = await response.json();
-
-            if (!data.response) {
-                throw new Error("No response from server");
-            }
-
+            if (!data.response) throw new Error("No response from server");
+    
             const botMsg: Message = {
                 sender: "bot",
                 text: data.response,
                 timestamp: new Date(),
             };
-
-            // Save bot message to Firebase
+    
+            // Save bot message
             await saveMessageToFirebase(botMsg);
-
-            setMessages(prev => {
-                if (prev.length === 0) return prev;
-                return prev.map((msg, idx) =>
-                    idx === prev.length - 1 && msg.sender === "bot"
-                        ? { ...msg, isNew: true }
-                        : { ...msg, isNew: false }
-                );
-            });
-            
+    
+            // Update UI for typewriter effect
+            setMessages(prev => prev.map((msg, idx) =>
+                idx === prev.length - 1 && msg.sender === "bot"
+                    ? { ...msg, isNew: true }
+                    : { ...msg, isNew: false }
+            ));
+    
             await speak(data.response);
-
+    
         } catch (error) {
             console.error("Error:", error);
             toast.error("Failed to get response from chatbot");
@@ -312,6 +363,16 @@ export default function ChatbotFancy() {
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         if (!SpeechRecognition) {
             toast.error("Speech recognition not supported in this browser");
+            return;
+        }
+
+        if (!user?.uid) {
+            toast.error("You must be logged in to use this feature.");
+            return;
+        }
+
+        if (usage && planLimits && usage.chatsToday >= planLimits.chats) {
+            toast.error(`You have reached your daily chat limit (${planLimits.chats}).`);
             return;
         }
 
@@ -400,6 +461,7 @@ export default function ChatbotFancy() {
     return (
         <div className="flex flex-col min-h-screen">
             <Navigation />
+            <ChatLimits usage={usage} planLimits={planLimits} />
             <div className="flex-grow bg-gradient-to-br from-[#0f0c29] via-[#302b63] to-[#24243e] p-4 flex items-center justify-center">
                 <motion.div
                     className="w-full max-w-5xl h-[85vh] bg-white/10 backdrop-blur-md border border-white/20 rounded-3xl shadow-xl p-4 md:p-6 flex flex-col"
