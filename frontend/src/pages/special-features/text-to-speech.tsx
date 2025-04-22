@@ -1,13 +1,32 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 
 const TextToSpeech = () => {
   const [text, setText] = useState('');
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const speechUtterance = new SpeechSynthesisUtterance();
 
   const handleSpeech = () => {
-    const utterance = new SpeechSynthesisUtterance(text);
-    window.speechSynthesis.speak(utterance);
+    if (text) {
+      speechUtterance.text = text;
+      window.speechSynthesis.speak(speechUtterance);
+      setIsSpeaking(true);
+    }
   };
+
+  useEffect(() => {
+    const handleEnd = () => {
+      setIsSpeaking(false);
+    };
+
+    speechUtterance.onend = handleEnd;
+
+    return () => {
+      // This function runs when the component unmounts
+      window.speechSynthesis.cancel(); // Stop any ongoing speech
+      speechUtterance.onend = null; // Clean up the event listener
+    };
+  }, []); // Empty dependency array ensures this runs only once on mount and unmount
 
   return (
     <div className="text-to-speech-container mt-8 p-6 bg-gray-800 rounded-xl border border-gray-700">
@@ -37,8 +56,9 @@ const TextToSpeech = () => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 2 }}
+        disabled={isSpeaking}
       >
-        Play Speech
+        {isSpeaking ? 'Speaking...' : 'Play Speech'}
       </motion.button>
     </div>
   );

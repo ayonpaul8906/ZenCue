@@ -1,5 +1,5 @@
 // src/pages/FocusEnhancers.tsx
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { extractImportantWords } from '../../hooks/importantWords';
 import { FaPlay, FaStop } from 'react-icons/fa';
@@ -14,7 +14,7 @@ const FocusEnhancers = () => {
   const utterance = useRef<SpeechSynthesisUtterance | null>(null);
 
   const speakText = () => {
-    if (!text) return;
+    if (!text || isReading) return;
     utterance.current = new SpeechSynthesisUtterance(text);
     utterance.current.rate = 0.9;
     speechSynthesis.speak(utterance.current);
@@ -23,9 +23,28 @@ const FocusEnhancers = () => {
   };
 
   const stopSpeech = () => {
-    speechSynthesis.cancel();
-    setIsReading(false);
+    if (isReading && utterance.current) {
+      speechSynthesis.cancel();
+      setIsReading(false);
+    }
   };
+
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      if (isReading) {
+        speechSynthesis.cancel();
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      if (isReading && utterance.current) {
+        speechSynthesis.cancel(); // Keep this in the unmount for component-level cleanup
+      }
+    };
+  }, [isReading]);
 
   const handleHighlight = () => {
     const words = extractImportantWords(text);
@@ -77,18 +96,21 @@ const FocusEnhancers = () => {
         <button
           onClick={speakText}
           className="bg-gradient-to-r from-blue-500 to-blue-700 text-white px-6 py-3 rounded-lg transition transform hover:scale-105 shadow-md"
+          disabled={isReading}
         >
           <FaPlay className="inline mr-2" /> Play
         </button>
         <button
           onClick={stopSpeech}
           className="bg-gradient-to-r from-red-500 to-red-700 text-white px-6 py-3 rounded-lg transition transform hover:scale-105 shadow-md"
+          disabled={!isReading}
         >
           <FaStop className="inline mr-2" /> Stop
         </button>
         <button
           onClick={handleHighlight}
           className="bg-gradient-to-r from-green-500 to-green-700 text-white px-6 py-3 rounded-lg transition transform hover:scale-105 shadow-md"
+          disabled={isReading}
         >
           🎯 Highlight
         </button>

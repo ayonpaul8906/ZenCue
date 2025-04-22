@@ -8,11 +8,8 @@ import { Link } from "react-router-dom";
 import { useState, useRef, useEffect } from "react";
 import { useAccount, useChainId, useSwitchChain, useDisconnect } from "wagmi"; // Added useDisconnect
 import { sepolia } from "viem/chains";
-
 import WalletInfo from "./WalletInfo";
-import SubscriptionPayment from "./SubscriptionPayment";
 import Transactions from "./Transactions";
-
 import "../styles/globals.css";
 import { useAuth } from "../hooks/AuthContext";
 import { toast } from "react-hot-toast"; 
@@ -245,7 +242,6 @@ export function Navigation() {
                   <WalletInfo />
                   {isConnected && (
                     <>
-                      <SubscriptionPayment />
                       <Transactions address={address!} />
                     </>
                   )}

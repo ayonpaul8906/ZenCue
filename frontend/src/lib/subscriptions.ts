@@ -14,13 +14,13 @@ const getExpiryDate = (planId: number): Timestamp | null => {
   let expiryTime: Date | null = null;
 
   switch (planId) {
-    case 2: // 1 Month
+    case 2: // Silver Plan 
       expiryTime = new Date(now.setMonth(now.getMonth() + 1));
       break;
-    case 3: // 3 Months
+    case 3: // Gold Plan
       expiryTime = new Date(now.setMonth(now.getMonth() + 3));
       break;
-    case 4: // 6 Months
+    case 4: // Platinum Plan
       expiryTime = new Date(now.setMonth(now.getMonth() + 6));
       break;
     default:
