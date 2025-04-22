@@ -1,32 +1,28 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom'; // Import useNavigate from react-router-dom
+import { useNavigate } from 'react-router-dom';
 import { Navigation } from '../components/navigation';
 import { Footer } from '../components/footer';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { Avatar, AvatarFallback, AvatarImage } from '../components/ui/avatar';
-import { Wallet as WalletIcon, History, Pencil, CheckCircle, XCircle } from 'lucide-react'; // Import XCircle for "No active subscription"
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '../components/ui/dialog';
+import { Wallet as WalletIcon, History, Pencil, CheckCircle, XCircle, Activity, Cpu } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../components/ui/dialog';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Textarea } from '../components/ui/textarea';
 import { useAccount } from 'wagmi';
 import Transactions from '../components/Transactions';
-import { db } from '../lib/firebase'; // Import Timestamp
-import { doc, getDoc, setDoc, Timestamp } from 'firebase/firestore';
+import { db } from '../lib/firebase';
+import { doc, getDoc, setDoc, collection, onSnapshot, query, orderBy, limit, Timestamp } from 'firebase/firestore';
 import { useAuth } from '../hooks/AuthContext';
 import { toast } from 'react-hot-toast';
 import { motion, useAnimation } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
+import { formatDistanceToNow } from 'date-fns';
+import { UserActivity, logActivity, ActivityTypes, cleanupOldActivities } from '../lib/activity';
 import { getActiveSubscription } from '../lib/subscriptions'; // Import the function
 
 const DEFAULT_PROFILE = {
@@ -88,6 +84,8 @@ export default function ProfilePage() {
   const [newSummary, setNewSummary] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [activeSubscription, setActiveSubscription] = useState<any | null>(null); // State to hold active subscription data
+  const [activities, setActivities] = useState<UserActivity[]>([]);
+
 
   const { address } = useAccount();
   const { user } = useAuth();
@@ -217,6 +215,12 @@ export default function ProfilePage() {
         summary: newSummary,
       }, { merge: true });
 
+      await logActivity(user.uid, {
+        type: ActivityTypes.PROFILE_UPDATE,
+        action: 'Updated profile details',
+        details: 'Changed profile information'
+      });
+
       setUsername(newName);
       setSummary(newSummary);
       toast.success('Profile updated successfully');
@@ -224,6 +228,65 @@ export default function ProfilePage() {
       console.error('Error saving profile:', error);
       toast.error('Failed to update profile');
     }
+  };
+
+  useEffect(() => {
+    if (!user?.uid) return;
+
+    const activitiesRef = collection(db, 'users', user.uid, 'activities');
+    const q = query(activitiesRef, orderBy('timestamp', 'desc'), limit(10));
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+        const newActivities = snapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data(),
+            timestamp: doc.data().timestamp?.toDate()
+        })) as UserActivity[];
+        setActivities(newActivities);
+    });
+
+    // Add cleanup of old activities
+    cleanupOldActivities(user.uid);
+
+    return () => unsubscribe();
+}, [user?.uid]);
+
+  const renderActivity = (activity: UserActivity) => {
+    let icon;
+    switch (activity.type) {
+      case ActivityTypes.PROFILE_UPDATE:
+        icon = <Pencil className="h-5 w-5 text-blue-400" />;
+        break;
+      case ActivityTypes.PAGE_VISIT:
+        icon = <History className="h-5 w-5 text-green-400" />;
+        break;
+      case ActivityTypes.FEATURE_USE:
+        icon = <Cpu className="h-5 w-5 text-purple-400" />;
+        break;
+      default:
+        icon = <Activity className="h-5 w-5 text-gray-400" />;
+    }
+
+    return (
+      <motion.div
+        key={activity.id}
+        variants={listItemAnimation}
+        className="border-b border-gray-700 pb-3"
+      >
+        <div className="flex items-center gap-2">
+          {icon}
+          <div>
+            <p className="font-medium">{activity.action}</p>
+            <p className="text-sm text-gray-500">
+              {formatDistanceToNow(activity.timestamp, { addSuffix: true })}
+            </p>
+            {activity.details && (
+              <p className="text-sm text-gray-400">{activity.details}</p>
+            )}
+          </div>
+        </div>
+      </motion.div>
+    );
   };
 
   if (isLoading) {
@@ -379,7 +442,13 @@ export default function ProfilePage() {
                             <p className="text-sm text-gray-500">Subscribe to unlock premium features!</p>
                           </motion.div>
                         )}
-                        <motion.div variants={listItemAnimation} className="border-b border-gray-700 pb-3">
+
+                        {activities.length > 0 ? (
+                          activities.map(activity => renderActivity(activity))
+                        ) : (
+                          <p className="text-gray-500">No recent activity</p>
+                        )}
+                        {/* <motion.div variants={listItemAnimation} className="border-b border-gray-700 pb-3">
                           <p className="font-medium">Visited “Explore Prompts”</p>
                           <p className="text-sm text-gray-500">2 hours ago</p>
                         </motion.div>
@@ -390,7 +459,7 @@ export default function ProfilePage() {
                         <motion.div variants={listItemAnimation} className="border-b border-gray-700 pb-3" transition={{ delay: 0.2 }}>
                           <p className="font-medium">Connected wallet</p>
                           <p className="text-sm text-gray-500">2 days ago</p>
-                        </motion.div>
+                        </motion.div> */}
                       </CardContent>
                     </Card>
                   </motion.div>

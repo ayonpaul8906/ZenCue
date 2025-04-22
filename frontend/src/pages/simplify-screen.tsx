@@ -8,6 +8,9 @@ import { Card } from '../components/ui/card';
 import { Input } from '../components/ui/input';
 import { cn } from "../lib/utils";
 import { Bot, Image as ImageIcon, StopCircle, Volume2 } from 'lucide-react';
+import { useAuth } from '../hooks/AuthContext';
+import { logActivity, ActivityTypes } from '../lib/activity';
+
 
 function App() {
     const [responseText, setResponseText] = useState('');
@@ -36,6 +39,20 @@ function App() {
 
         setIsSpeaking(false);
     }, []);
+
+    const { user } = useAuth();
+    const hasLoggedRef = useRef(false);
+
+    useEffect(() => {
+        if (user?.uid && !hasLoggedRef.current) {
+            logActivity(user.uid, {
+                type: ActivityTypes.PAGE_VISIT,
+                action: 'Visited Smart Explain', // Change this for each page
+                details: 'Accessed Smart Explain page'
+            });
+            hasLoggedRef.current = true;
+        }
+    }, [user]);
 
     useEffect(() => {
         setTimeout(() => {

@@ -161,7 +161,7 @@ def chat_text():
     try:
         data = request.json
         text = data.get("text", "")
-        history = data.get("history", [])
+        history = data.get("messages", [])
         
         if not text:
             return jsonify({"error": "No text provided"}), 400
@@ -171,8 +171,8 @@ def chat_text():
         # Convert history to the format expected by the model
         formatted_history = []
         for msg in history:
-            role = "assistant" if msg["sender"] == "bot" else "user"
-            formatted_history.append({"role": role, "content": msg["text"]})
+            role = msg.get("role", "user")
+            formatted_history.append({"role": role, "content": msg.get("content", "")})
 
         payload = {
             "model": "meta-llama/llama-4-scout-17b-16e-instruct",

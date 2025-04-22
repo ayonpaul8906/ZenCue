@@ -6,24 +6,25 @@ import { Footer } from "../components/footer";
 import { toast } from "react-hot-toast";
 import type { Message } from "../components/types/global";
 import { db } from "../lib/firebase";
-import { 
-  collection, 
-  addDoc, 
-  query, 
-  where, 
-  orderBy, 
-  limit, 
-  Timestamp,
-  onSnapshot
+import {
+    collection,
+    addDoc,
+    query,
+    where,
+    orderBy,
+    limit,
+    Timestamp,
+    onSnapshot
 } from "firebase/firestore";
 import { useAuth } from "../hooks/AuthContext";
 import TypewriterText from '../components/ui/TypewriterText';
+import { logActivity, ActivityTypes } from '../lib/activity';
 
 export default function ChatbotFancy() {
     const [input, setInput] = useState("");
     const [messages, setMessages] = useState<Message[]>([]);
     const [listening, setListening] = useState(false);
-    const [isLoading, setIsLoading] = useState(true); 
+    const [isLoading, setIsLoading] = useState(true);
     const recognitionRef = useRef<any>(null);
     const { user } = useAuth();
     const unsubscribeRef = useRef<any>(null);
@@ -45,6 +46,19 @@ export default function ChatbotFancy() {
             });
         }
     };
+
+    const hasLoggedRef = useRef(false);
+
+    useEffect(() => {
+        if (user?.uid && !hasLoggedRef.current) {
+            logActivity(user.uid, {
+                type: ActivityTypes.PAGE_VISIT,
+                action: 'Visited Prompt Buddy',
+                details: 'Accessed Chatbot Feature'
+            });
+            hasLoggedRef.current = true;
+        }
+    }, [user]);
 
     useEffect(() => {
         const lastMessage = messages[messages.length - 1];
@@ -85,45 +99,45 @@ export default function ChatbotFancy() {
         try {
             setIsLoading(true);
             console.log("Setting up real-time chat listener for user:", user.uid);
-            
+
             const chatQuery = query(
                 collection(db, "chats"),
                 where("userId", "==", user.uid),
                 orderBy("timestamp", "asc"),
                 limit(100)
             );
-            
+
             // Set up real-time listener
             unsubscribeRef.current = onSnapshot(chatQuery, (snapshot) => {
                 const loadedMessages: Message[] = [];
-                
+
                 snapshot.docs.forEach(doc => {
                     const data = doc.data();
-                    
+
                     // Ensure timestamp is properly handled
                     let timestamp = new Date();
                     if (data.timestamp) {
                         // Handle both Firestore Timestamp objects and date strings
-                        timestamp = data.timestamp instanceof Timestamp 
-                            ? data.timestamp.toDate() 
+                        timestamp = data.timestamp instanceof Timestamp
+                            ? data.timestamp.toDate()
                             : new Date(data.timestamp);
                     }
-                    
+
                     if (data.text && data.sender) {
                         loadedMessages.push({
                             id: doc.id,
                             sender: data.sender,
                             text: data.text,
                             timestamp: timestamp,
-                            userId: data.userId
+                            userId: data.userId,
+                            isNew: false
                         });
                     }
                 });
-                
-                console.log(`Real-time update: ${loadedMessages.length} messages loaded`);
+
                 setMessages(loadedMessages);
                 setIsLoading(false);
-                
+
                 // Scroll to bottom after messages load
                 if (loadedMessages.length > 0) {
                     setTimeout(() => {
@@ -136,13 +150,13 @@ export default function ChatbotFancy() {
                 toast.error("Failed to sync chat history");
                 setIsLoading(false);
             });
-            
+
         } catch (error) {
             console.error("Error setting up chat listener:", error);
             toast.error("Failed to load chat history");
             setIsLoading(false);
         }
-        
+
         // Clean up on component unmount or user change
         return () => {
             if (unsubscribeRef.current) {
@@ -162,17 +176,17 @@ export default function ChatbotFancy() {
                 toast.error("You need to be logged in to send messages");
                 return message; // Return original message if no user
             }
-    
+
             const messageData = {
                 userId: user.uid,
                 sender: message.sender,
                 text: message.text,
                 timestamp: Timestamp.fromDate(new Date())
             };
-    
+
             const docRef = await addDoc(collection(db, "chats"), messageData);
             console.log("Message saved with ID:", docRef.id);
-            
+
             // Return the complete message object with ID
             return {
                 ...message,
@@ -188,70 +202,73 @@ export default function ChatbotFancy() {
         }
     };
 
-    // Update the handleSend function
-const handleSend = async () => {
-    if (!input.trim() || isLoading) return;
+    const handleSend = async () => {
+        if (!input.trim() || isLoading) return;
 
-    try {
-        setIsLoading(true);
-        const userMsg: Message = { 
-            sender: "user", 
-            text: input.trim(),
-            timestamp: new Date()
-        };
+        try {
+            setIsLoading(true);
+            const userMsg: Message = {
+                sender: "user",
+                text: input.trim(),
+                timestamp: new Date()
+            };
+            
+            setInput("");
+            setIsScrollLocked(true);
 
-        // Update local state immediately for better UX
-        setMessages(prev => [...prev, userMsg]);
-        setInput("");
-        setIsScrollLocked(true);
+            await saveMessageToFirebase(userMsg);
 
-        // Save user message to Firebase
-        const savedUserMsg = await saveMessageToFirebase(userMsg);
+            const conversationHistory = messages.concat(userMsg).map(msg => ({
+                role: msg.sender === "user" ? "user" : "assistant",
+                content: msg.text
+            }));
 
-        const conversationHistory = messages.concat(userMsg).map(msg => ({
-            role: msg.sender === "user" ? "user" : "assistant",
-            content: msg.text
-        }));
+            const response = await fetch("http://localhost:5000/chat/text", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    messages: conversationHistory,
+                    text: userMsg.text
+                }),
+            });
 
-        const response = await fetch("http://localhost:5000/chat/text", {
-            method: "POST",
-            headers: { 
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                messages: conversationHistory,
-                text: userMsg.text
-            }),
-        });
+            if (!response.ok) throw new Error("Network response was not ok");
 
-        if (!response.ok) throw new Error("Network response was not ok");
+            const data = await response.json();
 
-        const data = await response.json();
-        
-        if (!data.response) {
-            throw new Error("No response from server");
+            if (!data.response) {
+                throw new Error("No response from server");
+            }
+
+            const botMsg: Message = {
+                sender: "bot",
+                text: data.response,
+                timestamp: new Date(),
+            };
+
+            // Save bot message to Firebase
+            await saveMessageToFirebase(botMsg);
+
+            setMessages(prev => {
+                if (prev.length === 0) return prev;
+                return prev.map((msg, idx) =>
+                    idx === prev.length - 1 && msg.sender === "bot"
+                        ? { ...msg, isNew: true }
+                        : { ...msg, isNew: false }
+                );
+            });
+            
+            await speak(data.response);
+
+        } catch (error) {
+            console.error("Error:", error);
+            toast.error("Failed to get response from chatbot");
+        } finally {
+            setIsLoading(false);
         }
-
-        const botMsg: Message = { 
-            sender: "bot", 
-            text: data.response,
-            timestamp: new Date()
-        };
-
-        // Update local state immediately with bot response
-        setMessages(prev => [...prev, botMsg]);
-        
-        // Save bot message to Firebase
-        await saveMessageToFirebase(botMsg);
-        await speak(data.response);
-
-    } catch (error) {
-        console.error("Error:", error);
-        toast.error("Failed to get response from chatbot");
-    } finally {
-        setIsLoading(false);
-    }
-};
+    };
 
     const speak = async (text: string) => {
         try {
@@ -312,25 +329,25 @@ const handleSend = async () => {
         recognition.onresult = async (event: any) => {
             const transcript = event.results[0][0].transcript;
             setInput(transcript);
-        
-            const userMsg: Message = { 
-                sender: "user", 
-                text: transcript, 
-                timestamp: new Date() 
+
+            const userMsg: Message = {
+                sender: "user",
+                text: transcript,
+                timestamp: new Date()
             };
-        
+
             try {
                 setIsLoading(true);
                 const savedUserMsg = await saveMessageToFirebase(userMsg);
                 setIsScrollLocked(true);
-        
+
                 // Create conversation history including the new message
                 const currentMessages = [...messages, savedUserMsg];
                 const conversationHistory = currentMessages.map(msg => ({
                     role: msg.sender === "user" ? "user" : "assistant",
                     content: msg.text
                 }));
-        
+
                 const response = await fetch("http://localhost:5000/chat/text", {
                     method: "POST",
                     headers: {
@@ -341,26 +358,26 @@ const handleSend = async () => {
                         text: transcript
                     }),
                 });
-        
+
                 if (!response.ok) {
                     throw new Error("Network response was not ok");
                 }
-        
+
                 const data = await response.json();
-                
+
                 if (!data.response) {
                     throw new Error("No response from server");
                 }
-        
-                const botMsg: Message = { 
-                    sender: "bot", 
-                    text: data.response, 
-                    timestamp: new Date() 
+
+                const botMsg: Message = {
+                    sender: "bot",
+                    text: data.response,
+                    timestamp: new Date()
                 };
-                
+
                 await saveMessageToFirebase(botMsg);
                 await speak(data.response);
-        
+
             } catch (error) {
                 console.error("Error:", error);
                 toast.error("Failed to get response from chatbot");
@@ -416,7 +433,7 @@ const handleSend = async () => {
                                     </p>
                                 </div>
                             )}
-                            
+
                             {isLoading && messages.length === 0 && (
                                 <div className="flex justify-center items-center h-full">
                                     <div className="text-white/70 text-center flex flex-col items-center">
@@ -425,7 +442,7 @@ const handleSend = async () => {
                                     </div>
                                 </div>
                             )}
-                            
+
                             {messages.map((msg, idx) => (
                                 <motion.div
                                     key={msg.id || `msg-${idx}-${msg.timestamp.getTime()}`}
@@ -437,16 +454,16 @@ const handleSend = async () => {
                                     <div className={`flex items-start gap-3 max-w-[85%] ${msg.sender === "user" ? "flex-row-reverse" : "flex-row"
                                         }`}>
                                         <div className={`w-8 h-8 shrink-0 rounded-full flex items-center justify-center ${msg.sender === "user"
-                                                ? "bg-gradient-to-r from-blue-500 to-purple-500"
-                                                : "bg-gradient-to-r from-pink-500 to-rose-500"
+                                            ? "bg-gradient-to-r from-blue-500 to-purple-500"
+                                            : "bg-gradient-to-r from-pink-500 to-rose-500"
                                             }`}>
                                             {msg.sender === "user" ? "👤" : "🤖"}
                                         </div>
                                         <div className={`px-4 py-3 rounded-2xl ${msg.sender === "user"
-                                                ? "bg-blue-500 text-white"
-                                                : "bg-white/20 text-white"
+                                            ? "bg-blue-500 text-white"
+                                            : "bg-white/20 text-white"
                                             } shadow-md`}>
-                                            {msg.sender === "bot" ? (
+                                            {msg.sender === "bot" && msg.isNew ? (
                                                 <TypewriterText
                                                     text={msg.text}
                                                     onComplete={scrollToBottom}
@@ -470,8 +487,8 @@ const handleSend = async () => {
                                 onClick={startListening}
                                 disabled={isLoading}
                                 className={`w-12 h-12 shrink-0 rounded-full flex items-center justify-center ${listening
-                                        ? "bg-red-600 animate-pulse"
-                                        : "bg-purple-600 hover:bg-purple-700"
+                                    ? "bg-red-600 animate-pulse"
+                                    : "bg-purple-600 hover:bg-purple-700"
                                     } text-white transition-all duration-300 ${isLoading ? "opacity-50 cursor-not-allowed" : ""
                                     }`}
                             >

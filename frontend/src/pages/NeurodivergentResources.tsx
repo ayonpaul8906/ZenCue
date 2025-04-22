@@ -202,7 +202,7 @@
 
 //Gemini
 
-import {useEffect, useState} from "react";
+import {useEffect, useState, useRef} from "react";
 import { motion } from "framer-motion";
 import { Button } from "../components/ui/button"; // Assuming this Button can take classNames
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../components/ui/card"; // Assuming Card structure like Shadcn UI
@@ -210,6 +210,9 @@ import { Navigation } from '../components/navigation'; // Assuming Navigation ad
 import { Footer } from '../components/footer'; // Assuming Footer adapts or is styled separately
 import { Link } from "react-router-dom";
 import { ArrowRight } from 'lucide-react'; // Example icon import
+import { useAuth } from '../hooks/AuthContext';
+import { logActivity, ActivityTypes } from '../lib/activity'; 
+
 
 const NeurodivergentResourcesPage = () => {
   // Helper function for consistent card motion animation
@@ -226,6 +229,21 @@ const NeurodivergentResourcesPage = () => {
   };
 
   const [isLoading, setIsLoading] = useState(true);
+
+  const { user } = useAuth();
+
+  const hasLoggedRef = useRef(false);
+
+  useEffect(() => {
+    if (user?.uid && !hasLoggedRef.current) {
+      logActivity(user.uid, {
+        type: ActivityTypes.PAGE_VISIT,
+        action: 'Visited MindZone', // Change this for each page
+        details: 'Accessed mindzone resources page',
+      });
+      hasLoggedRef.current = true;
+    }
+  }, [user]);
 
    useEffect(() => {
       setTimeout(() => {
