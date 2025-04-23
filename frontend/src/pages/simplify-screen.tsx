@@ -339,7 +339,7 @@ function App() {
 
             // Play audio with clean text
             try {
-                await playGroqAudio(res.data.explanation); // Use original response before HTML formatting
+                await playGroqAudio(stripMarkdownAndHtml(res.data.explanation));// Use original response before HTML formatting
             } catch (audioError) {
                 console.error('Failed to play audio:', audioError);
             }

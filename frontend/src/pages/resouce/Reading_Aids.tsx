@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 import { ArrowLeft } from "lucide-react";
 
 const ReadingAidsPage = () => {
-  const navigate = useNavigate();
+const navigate = useNavigate();
   return (
     <div className="bg-gray-900 text-gray-100 min-h-screen p-6">
       <div className="container mx-auto">

@@ -4,7 +4,7 @@ import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet";
 import { Monitor, Cpu, Menu, Search, Wallet, Home, Info, Brain } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { useState, useRef, useEffect } from "react";
 import { useAccount, useChainId, useSwitchChain, useDisconnect } from "wagmi"; // Added useDisconnect
 import { sepolia } from "viem/chains";
@@ -12,7 +12,16 @@ import WalletInfo from "./WalletInfo";
 import Transactions from "./Transactions";
 import "../styles/globals.css";
 import { useAuth } from "../hooks/AuthContext";
-import { toast } from "react-hot-toast"; 
+import { toast } from "react-hot-toast";
+
+const navLinks = [
+  { path: "/", label: "Home" },
+  { path: "/about", label: "About" },
+  { path: "/screen", label: "Smart Explain", protected: true },
+  { path: "/chatbot", label: "Prompt Buddy", protected: true },
+  { path: "/profile", label: "Profile", protected: true },
+  { path: "/resources", label: "MindZone", protected: true },
+];
 
 export function Navigation() {
   const { address, isConnected } = useAccount();
@@ -23,7 +32,7 @@ export function Navigation() {
   const [showPopup, setShowPopup] = useState(false);
   const popupRef = useRef<HTMLDivElement>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
-
+  const location = useLocation();
   const { user, logout } = useAuth(); // Access user and logout from AuthContext
 
   // Alert sound
@@ -71,40 +80,18 @@ export function Navigation() {
 
         {/* Desktop Nav (hidden on small screens) */}
         <nav className="hidden lg:flex items-center space-x-6 text-sm font-medium flex-1 ml-6">
-          <Link to="/" className="transition-colors hover:text-foreground/80 text-foreground">
-            Home
-          </Link>
-          <Link to="/about" className="transition-colors hover:text-foreground/80 text-foreground">
-            About
-          </Link>
-          <Link
-            to={user ? "/screen" : "#"}
-            onClick={!user ? handleRestrictedAccess : undefined}
-            className="transition-colors hover:text-foreground/80 text-foreground"
-          >
-            Smart Explain
-          </Link>
-          <Link
-            to={user ? "/chatbot" : "#"}
-            onClick={!user ? handleRestrictedAccess : undefined}
-            className="transition-colors hover:text-foreground/80 text-foreground"
-          >
-            Prompt Buddy
-          </Link>
-          <Link
-            to={user ? "/profile" : "#"}
-            onClick={!user ? handleRestrictedAccess : undefined}
-            className="transition-colors hover:text-foreground/80 text-foreground"
-          >
-            Profile
-          </Link>
-          <Link
-            to={user ? "/resources" : "#"}
-            onClick={!user ? handleRestrictedAccess : undefined}
-            className="transition-colors hover:text-foreground/80 text-foreground"
-          >
-            MindZone
-          </Link>
+          {navLinks.map((link) => (
+            <Link
+              key={link.path}
+              to={link.protected && !user ? "#" : link.path}
+              onClick={link.protected && !user ? handleRestrictedAccess : undefined}
+              className={`transition-colors hover:text-foreground/80 text-foreground ${
+                location.pathname === link.path ? "text-purple-600 font-semibold" : ""
+              }`}
+            >
+              {link.label}
+            </Link>
+          ))}
         </nav>
 
         {/* Desktop Search + Wallet */}
@@ -153,53 +140,40 @@ export function Navigation() {
             </SheetTrigger>
             <SheetContent side="left" className="w-64 bg-[#E6E6FA] p-6">
               <nav className="grid gap-4">
-                <Link to="/" className="flex items-center space-x-3 hover:text-purple-700">
-                  <Home className="h-5 w-5" />
-                  <span>Home</span>
-                </Link>
-                <Link to="/about" className="flex items-center space-x-3 hover:text-purple-700">
-                  <Info className="h-5 w-5" />
-                  <span>About</span>
-                </Link>
-                <Link
-                  to={user ? "/screen" : "#"}
-                  onClick={!user ? handleRestrictedAccess : undefined}
-                  className="flex items-center space-x-3 hover:text-purple-700"
-                >
-                  <Monitor className="h-5 w-5" />
-                  <span>Smart Explain</span>
-                </Link>
-                <Link
-                  to={user ? "/chatbot" : "#"}
-                  onClick={!user ? handleRestrictedAccess : undefined}
-                  className="flex items-center space-x-3 hover:text-purple-700"
-                >
-                  <Cpu className="h-5 w-5" />
-                  <span>Prompt Buddy</span>
-                </Link>
-                <Link
-                  to={user ? "/profile" : "#"}
-                  onClick={!user ? handleRestrictedAccess : undefined}
-                  className="flex items-center space-x-3 hover:text-purple-700"
-                >
-                  <span className="text-lg">👤</span>
-                  <span>Profile</span>
-                </Link>
-                <Link
-                  to={user ? "/resources" : "#"}
-                  onClick={!user ? handleRestrictedAccess : undefined}
-                  className="flex items-center space-x-3 hover:text-purple-700"
-                >
-                  <Brain className="h-5 w-5" />
-                  <span>MindZone</span>
-                </Link>
+                {navLinks.map((link) => (
+                  <Link
+                    key={link.path}
+                    to={link.protected && !user ? "#" : link.path}
+                    onClick={() => {
+                      if (link.protected && !user) {
+                        handleRestrictedAccess();
+                      }
+                      setSheetOpen(false);
+                    }}
+                    className={`flex items-center space-x-3 hover:text-purple-700 ${
+                      location.pathname === link.path ? "text-purple-700 font-semibold" : ""
+                    }`}
+                  >
+                    {link.path === "/" && <Home className="h-5 w-5" />}
+                    {link.path === "/about" && <Info className="h-5 w-5" />}
+                    {link.path === "/screen" && <Monitor className="h-5 w-5" />}
+                    {link.path === "/chatbot" && <Cpu className="h-5 w-5" />}
+                    {link.path === "/profile" && <span className="text-lg">👤</span>}
+                    {link.path === "/resources" && <Brain className="h-5 w-5" />}
+                    <span>{link.label}</span>
+                  </Link>
+                ))}
               </nav>
               <Button
-                  variant="outline"
-                  className="mt-4 flex items-center space-x-2 px-8 py-3 bg-purple-800 text-white hover:bg-purple-900"
-                  onClick={() =>{ setShowPopup((prev) => !prev);setSheetOpen(false);}}>
-                  <Wallet className="h-5 w-5" />
-                </Button>
+                variant="outline"
+                className="mt-4 flex items-center space-x-2 px-8 py-3 bg-purple-800 text-white hover:bg-purple-900"
+                onClick={() => {
+                  setShowPopup((prev) => !prev);
+                  setSheetOpen(false);
+                }}
+              >
+                <Wallet className="h-5 w-5" />
+              </Button>
 
               {/* Show Logout if logged in, otherwise Sign In */}
               {user ? (

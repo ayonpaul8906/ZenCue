@@ -2,7 +2,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { extractImportantWords } from '../../hooks/importantWords';
-import { FaPlay, FaStop } from 'react-icons/fa';
+import { FaPlay, FaStop, FaPause } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 
@@ -11,21 +11,39 @@ const FocusEnhancers = () => {
   const navigate = useNavigate();
   const [highlightedWords, setHighlightedWords] = useState<string[]>([]);
   const [isReading, setIsReading] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
   const utterance = useRef<SpeechSynthesisUtterance | null>(null);
 
   const speakText = () => {
-    if (!text || isReading) return;
-    utterance.current = new SpeechSynthesisUtterance(text);
-    utterance.current.rate = 0.9;
-    speechSynthesis.speak(utterance.current);
-    setIsReading(true);
-    utterance.current.onend = () => setIsReading(false);
+    if (!text) return;
+    if (!isReading) {
+      utterance.current = new SpeechSynthesisUtterance(text);
+      utterance.current.rate = 0.9;
+      speechSynthesis.speak(utterance.current);
+      setIsReading(true);
+      setIsPaused(false);
+      utterance.current.onend = () => {
+        setIsReading(false);
+        setIsPaused(false);
+      };
+    } else if (isPaused && utterance.current) {
+      speechSynthesis.resume();
+      setIsPaused(false);
+    }
+  };
+
+  const pauseSpeech = () => {
+    if (isReading && speechSynthesis.speaking && !isPaused && utterance.current) {
+      speechSynthesis.pause();
+      setIsPaused(true);
+    }
   };
 
   const stopSpeech = () => {
     if (isReading && utterance.current) {
       speechSynthesis.cancel();
       setIsReading(false);
+      setIsPaused(false);
     }
   };
 
@@ -96,9 +114,16 @@ const FocusEnhancers = () => {
         <button
           onClick={speakText}
           className="bg-gradient-to-r from-blue-500 to-blue-700 text-white px-6 py-3 rounded-lg transition transform hover:scale-105 shadow-md"
-          disabled={isReading}
+          disabled={isReading && !isPaused}
         >
-          <FaPlay className="inline mr-2" /> Play
+          <FaPlay className="inline mr-2" /> {isReading && !isPaused ? 'Reading...' : isPaused ? 'Resume' : 'Play'}
+        </button>
+        <button
+          onClick={pauseSpeech}
+          className="bg-gradient-to-r from-orange-500 to-orange-700 text-white px-6 py-3 rounded-lg transition transform hover:scale-105 shadow-md"
+          disabled={!isReading || isPaused}
+        >
+          <FaPause className="inline mr-2" /> Pause
         </button>
         <button
           onClick={stopSpeech}

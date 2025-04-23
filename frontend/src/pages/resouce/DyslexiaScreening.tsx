@@ -1,5 +1,7 @@
 import { motion } from "framer-motion";
 import { FaExternalLinkAlt } from "react-icons/fa";
+import { ArrowLeft } from "lucide-react";
+import { useNavigate } from 'react-router-dom';
 
 const screenings = [
   {
@@ -21,9 +23,24 @@ const screenings = [
   },
 ];
 
+
 export default function DyslexiaScreening() {
+  const navigate = useNavigate();
+  
   return (
     <div className="min-h-screen bg-gray-900 text-gray-100 px-6 py-12 sm:px-12 md:px-24">
+      
+      <motion.button
+          onClick={() => navigate("/resources")}
+          className="flex items-center gap-2 text-purple-400 hover:text-purple-300 font-semibold mb-8"
+          initial={{ x: -20, opacity: 0 }}
+          animate={{ x: 0, opacity: 1 }}
+          transition={{ duration: 0.3 }}
+        >
+          <ArrowLeft size={20} />
+          Back to Resources
+        </motion.button>
+      
       <motion.div
         initial={{ opacity: 0, y: -30 }}
         animate={{ opacity: 1, y: 0 }}

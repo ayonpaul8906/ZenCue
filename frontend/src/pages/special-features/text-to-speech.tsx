@@ -1,30 +1,43 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 
 const TextToSpeech = () => {
   const [text, setText] = useState('');
   const [isSpeaking, setIsSpeaking] = useState(false);
-  const speechUtterance = new SpeechSynthesisUtterance();
+  const [paused, setPaused] = useState(false);
+  const speechUtterance = useRef(new SpeechSynthesisUtterance());
 
   const handleSpeech = () => {
-    if (text) {
-      speechUtterance.text = text;
-      window.speechSynthesis.speak(speechUtterance);
+    if (text && !isSpeaking) {
+      speechUtterance.current.text = text;
+      window.speechSynthesis.speak(speechUtterance.current);
       setIsSpeaking(true);
+      setPaused(false);
+    } else if (isSpeaking && paused) {
+      window.speechSynthesis.resume();
+      setPaused(false);
+    }
+  };
+
+  const handleStop = () => {
+    if (isSpeaking) {
+      window.speechSynthesis.pause();
+      setPaused(true);
     }
   };
 
   useEffect(() => {
     const handleEnd = () => {
       setIsSpeaking(false);
+      setPaused(false);
     };
 
-    speechUtterance.onend = handleEnd;
+    speechUtterance.current.onend = handleEnd;
 
     return () => {
       // This function runs when the component unmounts
       window.speechSynthesis.cancel(); // Stop any ongoing speech
-      speechUtterance.onend = null; // Clean up the event listener
+      speechUtterance.current.onend = null; // Clean up the event listener
     };
   }, []); // Empty dependency array ensures this runs only once on mount and unmount
 
@@ -50,16 +63,29 @@ const TextToSpeech = () => {
         transition={{ duration: 1.5 }}
       />
 
-      <motion.button
-        onClick={handleSpeech}
-        className="mt-4 p-3 bg-purple-500 text-white rounded-md hover:bg-purple-600 focus:ring-2 focus:ring-purple-400"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 2 }}
-        disabled={isSpeaking}
-      >
-        {isSpeaking ? 'Speaking...' : 'Play Speech'}
-      </motion.button>
+      <div className="mt-4 space-x-2">
+        <motion.button
+          onClick={handleSpeech}
+          className="p-3 bg-purple-500 text-white rounded-md hover:bg-purple-600 focus:ring-2 focus:ring-purple-400"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 2 }}
+          disabled={isSpeaking && !paused}
+        >
+          {isSpeaking && !paused ? 'Speaking...' : paused ? 'Resume Speech' : 'Play Speech'}
+        </motion.button>
+
+        <motion.button
+          onClick={handleStop}
+          className="p-3 bg-red-500 text-white rounded-md hover:bg-red-600 focus:ring-2 focus:ring-red-400"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 2 }}
+          disabled={!isSpeaking}
+        >
+          Stop Speech
+        </motion.button>
+      </div>
     </div>
   );
 };
