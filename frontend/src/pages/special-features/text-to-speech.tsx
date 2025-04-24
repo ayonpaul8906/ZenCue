@@ -1,4 +1,4 @@
-import  useState, useEffect, useRef } from 'react';
+import  {useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 
 const TextToSpeech = () => {
