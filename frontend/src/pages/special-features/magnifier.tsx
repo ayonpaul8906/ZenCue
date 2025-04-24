@@ -2,18 +2,19 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 
 const Magnifier = () => {
-  const [image, setImage] = useState(null);
+  const [image, setImage] = useState<string | null>(null);
   const [hovered, setHovered] = useState(false);
 
   // Handle image upload
-  const handleImageUpload = (event) => {
-    const file = event.target.files[0];
-    if (file) {
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files && event.target.files[0]) {
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setImage(reader.result);
+      reader.onload = (e) => {
+        if (typeof e.target?.result === 'string') {
+          setImage(e.target.result);
+        }
       };
-      reader.readAsDataURL(file);
+      reader.readAsDataURL(event.target.files[0]);
     }
   };
 
@@ -58,9 +59,8 @@ const Magnifier = () => {
           <img
             src={image}
             alt="Uploaded"
-            className={`transition-transform duration-300 ease-in-out transform ${
-              hovered ? 'scale-150' : 'scale-100'
-            }`}
+            className={`transition-transform duration-300 ease-in-out transform ${hovered ? 'scale-150' : 'scale-100'
+              }`}
             style={{ width: '300px', cursor: 'zoom-in' }}
             onMouseOver={handleMouseOver}
             onMouseOut={handleMouseOut}

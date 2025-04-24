@@ -172,8 +172,8 @@ export default function ProfilePage() {
   }, []);
 
   const handleCloudinaryUpload = () => {
-    if (!window.cloudinary) {
-      toast.error('Cloudinary widget not loaded yet');
+    if (!window.cloudinary || !user?.uid) {
+      toast.error('Please log in first');
       return;
     }
 

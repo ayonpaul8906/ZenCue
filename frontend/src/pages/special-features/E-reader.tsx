@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 
 const SpecializedEReader = () => {
   const [text, setText] = useState('');
-  const [fontSize, setFontSize] = useState(16);
+  const [fontSize, setFontSize] = useState<number>(16);
   const [fontFamily, setFontFamily] = useState('Arial'); // Default font
   const [bgColor, setBgColor] = useState('#374151'); // Dark background color
 
@@ -24,7 +24,7 @@ const SpecializedEReader = () => {
   ];
 
   // Function to handle text input
-  const handleTextChange = (event) => {
+  const handleTextChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setText(event.target.value);
   };
 
@@ -37,12 +37,12 @@ const SpecializedEReader = () => {
   };
 
   // Change font family
-  const changeFontFamily = (font) => {
+  const changeFontFamily = (font: string) => {
     setFontFamily(font);
   };
 
   // Adjust background color
-  const changeBackgroundColor = (color) => {
+  const changeBackgroundColor = (color: string) => {
     setBgColor(color);
   };
 

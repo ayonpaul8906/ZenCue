@@ -233,7 +233,7 @@ const NeurodivergentResourcesPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const { user } = useAuth();
   const hasLoggedRef = useRef(false);
-  const [usage, setUsage] = useState<any>(null);
+  const [setUsage] = useState<any>(null);
   const [planLimits, setPlanLimits] = useState<any>(null);
 
   useEffect(() => {
