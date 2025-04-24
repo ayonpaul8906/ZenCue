@@ -8,7 +8,7 @@ export function PasswordInput({ value, onChange, placeholder }: any) {
   const [showPassword, setShowPassword] = useState(false)
 
   // Use images from the public directory correctly
-  const boyImage = showPassword ? '../../../public/boy-open.png' : '../../../public/boy-closed.png'
+  const boyImage = showPassword ? '/boy-open.png' : '/boy-closed.png'
 
   return (
     <div className="relative">
