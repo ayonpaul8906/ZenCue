@@ -64,11 +64,11 @@ export function Hero() {
     >
       <div className="relative z-10 max-w-5xl px-6 py-24 sm:py-32 lg:px-8 text-center">
         <h1 className="text-4xl font-bold tracking-tight sm:text-6xl">
-          Your smart & personalized AI companion.
+          Your smart & personalized AI companion
         </h1>
         <p className="mt-6 text-lg leading-8 text-muted-foreground">
           Empowering neurodivergent minds with smart, adaptive assistance -
-          helping you focus, undertsand and navigate with ease.
+          helping you focus, undertsand and navigate with ease
         </p>
         <div className="mt-10 flex items-center justify-center gap-x-6">
           <Link to="/profile">

@@ -1,147 +1,151 @@
 import { Button } from "./ui/button";
-import { Card, CardFooter, CardHeader, CardTitle } from "./ui/card";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "./ui/card";
 import { useSubscriptionPayment } from "../hooks/useSubscriptionPayment";
 import { Toaster, toast } from "react-hot-toast";
-import { useAuth } from "../hooks/AuthContext"; // Assuming this is your modified AuthContext
+import { useAuth } from "../hooks/AuthContext";
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
-import { CheckCircleIcon } from "@heroicons/react/24/solid";
-import { getFirestore, doc, setDoc, onSnapshot, serverTimestamp } from "firebase/firestore";
-import { app } from "../lib/firebase"; // Assuming your Firebase app is initialized here
+import { getFirestore, doc, setDoc, onSnapshot, getDoc, serverTimestamp } from "firebase/firestore";
+import { app } from "../lib/firebase";
 
-const featuredPrompts = [
+// Simple icons using SVG for better accessibility
+const CheckIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" className="text-green-600">
+    <circle cx="10" cy="10" r="9" strokeWidth="2"/>
+    <path d="M6.5 10L9 12.5L14 7.5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+  </svg>
+);
+
+const PLAN_LIMITS = {
+  free: { textexplanations: 5, imageexplanations: 5, chats: 10, mindzone: false },
+  silver: { textexplanations: 10, imageexplanations: 10, chats: 30, mindzone: true },
+  gold: { textexplanations: 20, imageexplanations: 20, chats: 60, mindzone: true },
+  platinum: { textexplanations: 30, imageexplanations: 30, chats: 100, mindzone: true },
+  none: { textexplanations: 0, imageexplanations: 0, chats: 0, mindzone: false }
+};
+
+const subscriptionPlans = [
   {
     id: 1,
-    title: "Lite",
-    description: [
+    title: "Free Plan",
+    emoji: "🌱",
+    color: "bg-blue-50",
+    borderColor: "border-blue-200",
+    buttonColor: "bg-blue-500 hover:bg-blue-600",
+    description: "Get started with basic learning tools",
+    features: [
       "Up to 5 text explanations (total)",
       "Up to 5 image explanations (total)",
       "Up to 10 chatbot interactions (total, text-only)",
       "No access to Mind Zone",
-      "Basic features only",
+      "Basic learning games",
+      "Standard support"
     ],
     price: "Free",
     ethValue: "0",
-    features: [
-      "Limited explanations (text: 5 total, image: 5 total)",
-      "Basic chatbot (text-only, 10 total interactions)",
-      "No Mind Zone access",
-      "Standard support",
-    ],
-    limits: {
-      textexplanations: 5,
-      imageexplanations: 5,
-      chats: 10,
-      mindzone: false,
-    },
+    limits: PLAN_LIMITS.free,
   },
   {
     id: 2,
-    title: "Silver",
-    description: [
-      "Up to 10 text explanations per day (with text & audio)",
+    title: "Silver Plan",
+    emoji: "🌟",
+    color: "bg-purple-50",
+    borderColor: "border-purple-200",
+    buttonColor: "bg-purple-500 hover:bg-purple-600",
+    description: "More learning tools and fun games",
+    features: [
+      "Up to 10 text explanations per day (with sound)",
       "Up to 10 image explanations per day",
-      "Up to 30 chatbot interactions per day (text & audio)",
-      "Access to articles and videos in Mind Zone",
-      "Pomodoro Timer with sentence highlighting",
-      "Full access to Reading Aids",
-      "Full community engagement",
+      "Up to 30 chatbot interactions per day (text & voice)",
+      "Fun games in Mind Zone",
+      "Reading timer with highlights",
+      "Reading helpers",
+      "Join the community"
     ],
     price: "0.005 ETH",
     ethValue: "0.005",
-    features: [
-      "Up to 10 text explanations/day (text & audio)",
-      "Up to 10 image explanations/day",
-      "Up to 30 chatbot interactions/day",
-      "Mind Zone access",
-      "Pomodoro Timer",
-      "Reading Aids",
-      "Community access",
-    ],
-    limits: {
-      textexplanations: 10,
-      imageexplanations: 10,
-      chats: 30,
-      mindzone: true,
-    },
+    limits: PLAN_LIMITS.silver,
   },
   {
     id: 3,
-    title: "Gold",
-    description: [
-      "Up to 20 text explanations per day (priority access, faster loading, early content)",
+    title: "Gold Plan",
+    emoji: "✨",
+    color: "bg-amber-50",
+    borderColor: "border-amber-200",
+    buttonColor: "bg-amber-500 hover:bg-amber-600",
+    description: "Faster and more personalized learning",
+    features: [
+      "Up to 20 text explanations per day (fast)",
       "Up to 20 image explanations per day",
-      "Up to 60 chatbot interactions per day (customizable text & audio)",
-      "Exclusive articles and videos in Mind Zone",
-      "Customizable Pomodoro Timer",
-      "Advanced Text-to-Speech features",
-      "Exclusive events and webinars",
+      "Up to 60 chatbot interactions per day (customizable)",
+      "Special Mind Zone content",
+      "Custom study timer",
+      "Advanced reading tools",
+      "Special learning events"
     ],
     price: "0.015 ETH",
-    ethValue: "0.012",
-    features: [
-      "Up to 20 text explanations/day (priority)",
-      "Up to 20 image explanations/day",
-      "Up to 60 chatbot interactions/day (customizable)",
-      "Exclusive Mind Zone content",
-      "Customizable Pomodoro Timer",
-      "Advanced Text-to-Speech",
-      "Exclusive community events",
-    ],
-    limits: {
-      textexplanations: 20,
-      imageexplanations: 20,
-      chats: 60,
-      mindzone: true,
-    },
+    ethValue: "0.015",
+    limits: PLAN_LIMITS.gold,
   },
   {
     id: 4,
-    title: "Platinum",
-    description: [
-      "Up to 30 text explanations per day (unlimited access to complex content)",
+    title: "Platinum Plan",
+    emoji: "🏆",
+    color: "bg-teal-50",
+    borderColor: "border-teal-200",
+    buttonColor: "bg-teal-500 hover:bg-teal-600",
+    description: "The ultimate learning experience",
+    features: [
+      "Up to 30 text explanations per day (complex content)",
       "Up to 30 image explanations per day",
-      "Up to 100 chatbot interactions per day (personalized, ongoing)",
-      "VIP access to exclusive articles and videos in Mind Zone",
-      "Full customization of Pomodoro Timer and focus tools",
-      "Unlimited access to all Reading Aids with device sync",
-      "Priority membership in the community with expert-led sessions",
+      "Up to 100 chatbot interactions per day (personalized)",
+      "VIP Mind Zone access",
+      "All focus tools",
+      "Unlimited reading helpers",
+      "Special community access"
     ],
     price: "0.08 ETH",
-    ethValue: "0.020",
-    features: [
-      "Up to 30 text explanations/day (unlimited complex)",
-      "Up to 30 image explanations/day",
-      "Up to 100 chatbot interactions/day (personalized)",
-      "VIP Mind Zone access",
-      "Full Pomodoro & focus tools",
-      "Unlimited Reading Aids (sync)",
-      "Priority community membership",
-    ],
-    limits: {
-      textexplanations: 30,
-      imageexplanations: 30,
-      chats: 100,
-      mindzone: true,
-    },
-  },
+    ethValue: "0.08",
+    limits: PLAN_LIMITS.platinum,
+  }
 ];
 
 export function SubscriptionPlan() {
   const { user, isWalletConnected, connectWallet } = useAuth();
-  const [freePlanClicked, setFreePlanClicked] = useState(false);
-  const [flipped, setFlipped] = useState(false);
+  const [currentPlanId, setCurrentPlanId] = useState(null);
+  const [hoveredCard, setHoveredCard] = useState(null);
+  const [freePlanClaimed, setFreePlanClaimed] = useState(false);
   const firestore = getFirestore(app);
 
   useEffect(() => {
     if (user?.uid) {
       const userDocRef = doc(firestore, 'users', user.uid);
-      const unsubscribe = onSnapshot(userDocRef, (docSnapshot) => {
+      getDoc(userDocRef).then((userDocSnapshot) => {
+        if (userDocSnapshot.exists()) {
+          const userData = userDocSnapshot.data();
+          setFreePlanClaimed(!!userData?.freePlanClaimed);
+        }
+      });
+
+      // Listen for subscription changes
+      const subscriptionRef = doc(firestore, 'subscriptions', user.uid);
+      const unsubscribe = onSnapshot(subscriptionRef, (docSnapshot) => {
         if (docSnapshot.exists()) {
-          const userData = docSnapshot.data();
-          setFreePlanClicked(!!userData?.hasStartedFreePlan);
+          const subscriptionData = docSnapshot.data();
+          setCurrentPlanId(subscriptionData.planId);
         } else {
-          setFreePlanClicked(false);
+          // Check if they have at least the free plan from user document
+          const userDocRef = doc(firestore, 'users', user.uid);
+          onSnapshot(userDocRef, (userDocSnapshot) => {
+            if (userDocSnapshot.exists()) {
+              const userData = userDocSnapshot.data();
+              if (userData?.hasStartedFreePlan) {
+                setCurrentPlanId(1); // Set free plan as current
+              } else {
+                setCurrentPlanId(null);
+              }
+            }
+          });
         }
       });
       return () => unsubscribe();
@@ -149,7 +153,7 @@ export function SubscriptionPlan() {
   }, [user?.uid, firestore]);
 
   const handleRestrictedAccess = () => {
-    toast.error("You need to log in to interact with the plans!");
+    toast.error("Please ask an adult to help you log in!");
   };
 
   const handleStartFree = async () => {
@@ -162,209 +166,226 @@ export function SubscriptionPlan() {
       const subscriptionRef = doc(firestore, 'subscriptions', user.uid);
       await setDoc(subscriptionRef, {
         userId: user.uid,
-        planId: 1, 
+        planId: 1,
         planTitle: 'Free',
         price: '0',
         ethValue: '0',
         purchaseDate: serverTimestamp(),
-        status: 'active' 
+        status: 'active',
+        limits: PLAN_LIMITS.free
       });
 
       // Also update user document
       const userRef = doc(firestore, 'users', user.uid);
-      await setDoc(userRef, { 
+      await setDoc(userRef, {
         hasStartedFreePlan: true,
+        freePlanClaimed: true,
         totalTextExplanations: 0,
         totalImageExplanations: 0
       }, { merge: true });
 
-      toast.success("You've started with the free plan!");
-      setFreePlanClicked(true);
+      toast.success("Hooray! You're starting with the free plan!");
+      setCurrentPlanId(1);
     } catch (error) {
       console.error("Error starting free plan:", error);
-      toast.error("Failed to start the free plan. Please try again.");
+      toast.error("Oops! Something went wrong. Let's try again!");
     }
-};
+  };
+
+  // Only update plan after payment and Firestore update succeed
+  const updateSubscriptionAfterPayment = async (plan) => {
+    try {
+      const subscriptionRef = doc(firestore, 'subscriptions', user.uid);
+      await setDoc(subscriptionRef, {
+        userId: user.uid,
+        planId: plan.id,
+        planTitle: plan.title,
+        price: plan.price,
+        ethValue: plan.ethValue,
+        purchaseDate: serverTimestamp(),
+        status: 'active',
+        limits: plan.limits
+      });
+
+      setCurrentPlanId(plan.id);
+      toast.success(`Yay! You now have the ${plan.title}!`);
+    } catch (error) {
+      console.error("Error updating subscription:", error);
+      toast.error("Payment was successful, but we couldn't update your plan. Please contact support.");
+    }
+  };
 
   return (
-    <section className="py-24 bg-zinc-900">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <Toaster />
-        <div className="mb-12 sm:mb-16">
-          <h2 className="text-3xl font-bold text-center text-purple-400 sm:text-4xl">
-            Unlock Your Potential with Our Plans
-          </h2>
-          <p className="mt-4 text-lg text-zinc-400 text-center">
-            Choose the plan that best suits your neurodivergent journey.
-          </p>
+    <section className="py-12 bg-white">
+      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+        <Toaster
+          toastOptions={{
+            style: {
+              borderRadius: '10px',
+              background: '#333',
+              color: '#fff',
+              fontSize: '16px',
+              padding: '16px'
+            }
+          }}
+        />
+
+        <div className="mb-10 text-center">
+          <motion.h2
+            className="text-3xl font-bold text-purple-500 sm:text-4xl mb-2"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            Choose Your Learning Adventure!
+          </motion.h2>
+          <motion.div
+            className="max-w-2xl mx-auto"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.2, duration: 0.5 }}
+          >
+            <p className="text-lg text-gray-600">
+              Pick the plan that helps you learn best!
+            </p>
+          </motion.div>
         </div>
 
-        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
-          {featuredPrompts.map((prompt, index) => {
-            const { initiatePayment, isPending } = useSubscriptionPayment(prompt);
-            const [flipped, setFlipped] = useState(false);
+        <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
+          {subscriptionPlans.map((plan, index) => {
+            const { initiatePayment, isPending } = useSubscriptionPayment(plan);
+            const isCurrentPlan = currentPlanId === plan.id;
+            const currentPlanHighlight = isCurrentPlan ?
+              'ring-4 ring-green-400 border-green-400' : '';
 
             return (
               <motion.div
-                key={prompt.id}
-                className="perspective"
+                key={plan.id}
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.15, duration: 0.4 }}
+                onMouseEnter={() => setHoveredCard(plan.id)}
+                onMouseLeave={() => setHoveredCard(null)}
               >
-                <div
-                  onMouseEnter={() => setFlipped(true)}
-                  onMouseLeave={() => setFlipped(false)}
-                  className="relative w-full h-auto min-h-[400px] cursor-pointer transform-style-preserve-3d transition-transform duration-500"
-                  style={{ transform: flipped ? "rotateY(180deg)" : "rotateY(0deg)" }}
-                >
-                  {/* FRONT */}
-                  <div className="absolute w-full h-full backface-hidden bg-zinc-800 border border-zinc-700 rounded-xl shadow-lg p-6 flex flex-col justify-between">
-                    <div className="mb-4">
-                      <CardHeader className="pb-0">
-                        <CardTitle className="text-3xl text-center font-semibold text-purple-400 tracking-tight">
-                          {prompt.title}
-                        </CardTitle>
-                      </CardHeader>
-                      <p className="mt-2 text-center text-sm text-zinc-400">
-                        Click for detailed features
-                      </p>
-                    </div>
+                <Card className={`${plan.color} border-2 ${isCurrentPlan ? 'border-green-400' : plan.borderColor}
+                  rounded-2xl shadow-lg transition-all duration-300 ${currentPlanHighlight}
+                  ${hoveredCard === plan.id && !isCurrentPlan ? 'transform translate-y-[-8px] shadow-xl' : ''}`}>
 
-                    <div className="flex-grow flex flex-col justify-center items-center py-4">
-                      <span className="text-3xl font-bold text-purple-300">
-                        {prompt.price === "Free" ? "Free" : `${prompt.price}`}
+                  {isCurrentPlan && (
+                    <div className="absolute -top-3 left-0 right-0 mx-auto w-fit px-3 py-1 bg-green-500 text-white rounded-full text-sm font-bold">
+                      Your Current Plan
+                    </div>
+                  )}
+
+                  <CardHeader className="pb-2 text-center">
+                    <div className="text-4xl mb-2">{plan.emoji}</div>
+                    <CardTitle className="text-2xl font-bold text-gray-800">
+                      {plan.title}
+                    </CardTitle>
+                    <p className="text-gray-600 font-medium">
+                      {plan.description}
+                    </p>
+                  </CardHeader>
+
+                  <CardContent>
+                    <div className="text-center my-2">
+                      <span className="text-2xl font-bold text-gray-800">
+                        {plan.price === "Free" ? "Free" : plan.price}
                       </span>
-                      {prompt.price !== "Free" && (
-                        <span className="text-sm text-zinc-500 mt-1">
-                          (${prompt.ethValue} ETH)
-                        </span>
-                      )}
                     </div>
 
-                    <CardFooter className="pt-4">
-                      {prompt.ethValue !== "0" ? (
-                        user ? ( // Check if user is logged in for paid plans
-                          isWalletConnected ? (
-                            <Button
-                              className="w-full bg-purple-600 hover:bg-purple-700 text-white shadow-md"
-                              onClick={() => initiatePayment()}
-                              disabled={isPending}
-                            >
-                              {isPending ? "Processing..." : "Choose Plan"}
-                            </Button>
-                          ) : (
-                            <Button
-                              className="w-full bg-purple-400 hover:bg-purple-600 text-white shadow-md"
-                              onClick={connectWallet}
-                            >
-                              Please Connect Wallet
-                            </Button>
-                          )
-                        ) : (
-                          <Button
-                            className="w-full bg-gray-500 text-white shadow-md cursor-not-allowed"
-                            onClick={handleRestrictedAccess}
-                          >
-                            Login to Choose
-                          </Button>
-                        )
-                      ) : (
-                        user ? ( // Check if user is logged in for the free plan
-                          !freePlanClicked && (
-                            <Button
-                              className="w-full bg-green-600 hover:bg-green-700 text-white shadow-md"
-                              onClick={handleStartFree}
-                              disabled={freePlanClicked}
-                            >
-                              {freePlanClicked ? "Started" : "Get Started"}
-                            </Button>
-                          )
-                        ) : (
-                          <Button
-                            className="w-full bg-gray-500 text-white shadow-md cursor-not-allowed"
-                            onClick={handleRestrictedAccess}
-                          >
-                            Login to Start
-                          </Button>
-                        )
-                      )}
-                    </CardFooter>
-                  </div>
-
-                  {/* BACK */}
-                  <div className="absolute w-full h-full backface-hidden rotate-y-180 bg-zinc-700 border border-zinc-600 rounded-xl shadow-lg p-6 flex flex-col">
-                    <h3 className="text-xl font-semibold text-purple-300 mb-3">
-                      Plan Details:
-                    </h3>
-                    <ul className="list-none space-y-2 flex-grow">
-                      {prompt.features &&
-                        prompt.features.map((feature, index) => (
-                          <li key={index} className="text-sm text-zinc-300 flex items-center">
-                            <CheckCircleIcon className="h-4 w-4 mr-2 text-green-400" />
-                            {feature}
-                          </li>
-                        ))}
-                      {!prompt.features &&
-                        prompt.description.map((line, index) => (
-                          <li key={index} className="text-sm text-zinc-300">
-                            {line}
-                          </li>
-                        ))}
+                    <ul className="space-y-2 mt-4">
+                      {plan.features.map((feature, idx) => (
+                        <li key={idx} className="flex items-start">
+                          <span className="mr-2 mt-1"><CheckIcon /></span>
+                          <span className="text-gray-700">{feature}</span>
+                        </li>
+                      ))}
                     </ul>
-                    <div className="mt-4">
-                      {prompt.ethValue !== "0" ? (
-                        user ? ( // Check if user is logged in for paid plans (back of card)
-                          isWalletConnected ? (
-                            <Button
-                              className="w-full bg-purple-600 hover:bg-purple-700 text-white shadow-md"
-                              onClick={() => initiatePayment()}
-                              disabled={isPending}
-                            >
-                              {isPending ? "Processing..." : "Select This Plan"}
-                            </Button>
-                          ) : (
-                            <Button
-                              className="w-full bg-purple-400 hover:bg-purple-600 text-white shadow-md"
-                              onClick={connectWallet}
-                            >
-                              Please Connect Wallet
-                            </Button>
-                          )
+                  </CardContent>
+
+                  <CardFooter className="pt-2">
+                    {plan.ethValue !== "0" ? (
+                      user ? (
+                        isCurrentPlan ? (
+                          <Button
+                            className="w-full bg-green-500 text-white font-medium py-3 rounded-xl shadow-md cursor-default"
+                            disabled
+                          >
+                            Your Current Plan
+                          </Button>
+                        ) : isWalletConnected ? (
+                          <Button
+                            className={`w-full ${plan.buttonColor} text-white font-medium py-3 rounded-xl shadow-md transition-all duration-200`}
+                            onClick={async () => {
+                              try {
+                                const paymentSuccess = await initiatePayment();
+                                if (paymentSuccess) {
+                                  await updateSubscriptionAfterPayment(plan);
+                                }
+                                // If payment failed or cancelled, do nothing!
+                              } catch (error) {
+                                console.error("Payment failed:", error);
+                                toast.error("Payment failed. Please try again.");
+                              }
+                            }}
+                            disabled={isPending}
+                          >
+                            {isPending ? "Processing..." : "Choose Plan"}
+                          </Button>
                         ) : (
                           <Button
-                            className="w-full bg-gray-500 text-white shadow-md cursor-not-allowed"
-                            onClick={handleRestrictedAccess}
+                            className="w-full bg-indigo-500 hover:bg-indigo-600 text-white font-medium py-3 rounded-xl shadow-md"
+                            onClick={connectWallet}
                           >
-                            Login to Choose
+                            Ask Adult to Connect Wallet
                           </Button>
                         )
                       ) : (
-                        user ? ( // Check if user is logged in for the free plan (back of card)
-                          !freePlanClicked && (
-                            <Button
-                              className="w-full bg-green-600 hover:bg-green-700 text-white shadow-md"
-                              onClick={handleStartFree}
-                              disabled={freePlanClicked}
-                            >
-                              {freePlanClicked ? "Started" : "Start with Free"}
-                            </Button>
-                          )
-                        ) : (
+                        <Button
+                          className="w-full bg-gray-400 hover:bg-gray-500 text-white font-medium py-3 rounded-xl shadow-md"
+                          onClick={handleRestrictedAccess}
+                        >
+                          Log In First
+                        </Button>
+                      )
+                    ) : (
+                      user ? (
+                        isCurrentPlan ? (
                           <Button
-                            className="w-full bg-gray-500 text-white shadow-md cursor-not-allowed"
-                            onClick={handleRestrictedAccess}
+                            className="w-full bg-green-500 text-white font-medium py-3 rounded-xl shadow-md cursor-default"
+                            disabled
                           >
-                            Login to Start
+                            Your Current Plan
                           </Button>
-                        )
-                      )}
-                    </div>
-                  </div>
-                </div>
+                        ) : !freePlanClaimed ? (
+                          <Button
+                            className="w-full bg-blue-500 hover:bg-blue-600 text-white font-medium py-3 rounded-xl shadow-md"
+                            onClick={handleStartFree}
+                          >
+                            Start Free Plan
+                          </Button>
+                        ) : null
+                      ) : (
+                        <Button
+                          className="w-full bg-gray-400 hover:bg-gray-500 text-white font-medium py-3 rounded-xl shadow-md"
+                          onClick={handleRestrictedAccess}
+                        >
+                          Log In First
+                        </Button>
+                      )
+                    )}
+                  </CardFooter>
+                </Card>
               </motion.div>
             );
           })}
+        </div>
+
+        <div className="mt-12 text-center">
+          <p className="text-sm text-gray-500">
+            Need help choosing? Ask an adult or <button className="text-blue-500 underline">contact our friendly support team</button>
+          </p>
         </div>
       </div>
     </section>

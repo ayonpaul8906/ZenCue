@@ -50,9 +50,9 @@ export default function Transactions({ address }: { address: string }) {
   }, [address]);
 
   const getPlan = (ethValue: number) => {
-    if (ethValue === 0.005000) return 'Weekly';
-    if (ethValue === 0.008333) return 'Monthly';
-    if (ethValue === 0.013333) return 'Yearly';
+    if (ethValue === 0.005000) return 'Silver Plan';
+    if (ethValue === 0.008333) return 'Gold Plan';
+    if (ethValue === 0.013333) return 'Platinum Plan';
     return 'Custom';
   };
 

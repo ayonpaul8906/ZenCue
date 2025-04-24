@@ -17,87 +17,30 @@ import {
     onSnapshot
 } from "firebase/firestore";
 import { useAuth } from "../hooks/AuthContext";
-import TypewriterText from '../components/ui/TypewriterText';
 import { logActivity, ActivityTypes } from '../lib/activity';
 import { getUserUsage, incrementUsage, getPlanLimits } from '../lib/usageService';
 
-// Markdown/response formatter
-function formatResponseText(text: string) {
-    let formattedText = text;
-
-    // Convert markdown to HTML with styling
-    formattedText = formattedText
+// Add this after your imports
+function formatMarkdown(text: string) {
+    return text
         // Headers
         .replace(/^###\s(.*)$/gm, "<h3 class='text-xl font-bold text-purple-400 mt-4 mb-2'>$1</h3>")
         .replace(/^##\s(.*)$/gm, "<h2 class='text-2xl font-bold text-purple-400 mt-6 mb-3'>$1</h2>")
         .replace(/^#\s(.*)$/gm, "<h1 class='text-3xl font-bold text-purple-400 mt-8 mb-4'>$1</h1>")
-
         // Bold and Italic
         .replace(/\*\*(.*?)\*\*/g, "<strong class='text-purple-300'>$1</strong>")
         .replace(/\*(.*?)\*/g, "<em class='text-blue-300'>$1</em>")
-        .replace(/_(.*?)_/g, "<em class='text-blue-300'>$1</em>")
-
         // Code blocks
         .replace(/`(.*?)`/g, "<code class='bg-gray-800/80 px-2 py-0.5 rounded text-pink-400'>$1</code>")
-
-        // Links
-        .replace(/\[([^\]]+)]\(([^)]+)\)/g, '<a href="$2" target="_blank" class="text-blue-400 hover:underline">$1</a>')
-
         // Lists
         .replace(/^[-*•]\s*(.*?)$/gm, "<li class='ml-4 text-gray-300'>$1</li>")
         .replace(/^\d+\.\s*(.*?)$/gm, "<li class='ml-4 text-gray-300'>$1</li>")
-
         // Blockquotes
         .replace(/^>\s*(.*?)$/gm, "<blockquote class='border-l-4 border-purple-500 pl-4 my-4 italic text-gray-400'>$1</blockquote>")
-
-        // Paragraphs (handle newlines)
-        .replace(/\n\n/g, "</p><p class='mb-4 text-gray-300'>")
-        .trim();
-
-        const stripMarkdownAndHtml = (text: string) => {
-            return text
-                // Remove HTML tags
-                .replace(/<[^>]*>/g, '')
-                // Remove markdown headers
-                .replace(/^###\s*(.*?)$/gm, '$1')
-                .replace(/^##\s*(.*?)$/gm, '$1')
-                .replace(/^#\s*(.*?)$/gm, '$1')
-                // Remove bold and italic markers
-                .replace(/\*\*(.*?)\*\*/g, '$1')
-                .replace(/\*(.*?)\*/g, '$1')
-                .replace(/_(.*?)_/g, '$1')
-                // Remove code blocks
-                .replace(/`(.*?)`/g, '$1')
-                // Remove markdown links, keep text
-                .replace(/\[([^\]]+)]\(([^)]+)\)/g, '$1')
-                // Remove list markers
-                .replace(/^[-*•]\s*/gm, '')
-                .replace(/^\d+\.\s*/gm, '')
-                // Remove blockquote markers
-                .replace(/^>\s*/gm, '')
-                // Clean up extra whitespace
-                .replace(/\s+/g, ' ')
-                .trim();
-        };
-
-    // Wrap the entire text in a paragraph if it doesn't start with a special element
-    if (!formattedText.startsWith('<h') &&
-        !formattedText.startsWith('<blockquote') &&
-        !formattedText.startsWith('<li')) {
-        formattedText = `<p class='mb-4 text-gray-300'>${formattedText}</p>`;
-    }
-
-    // Wrap lists in containers
-    formattedText = formattedText
-        .replace(/(<li[^>]*>.*?<\/li>)\s*<li/g, '$1\n<li') // Add newlines between list items
-        .replace(/(<li[^>]*>.*?<\/li>(\n)?)+/g, (match) => {
-            if (match.includes('class="numbered"')) {
-                return `<ol class="list-decimal list-inside mb-4">${match}</ol>`;
-            }
-            return `<ul class="list-disc list-inside mb-4">${match}</ul>`;
-        });
-
-    return formattedText;
+        // Links
+        .replace(/\[([^\]]+)]\(([^)]+)\)/g, '<a href="$2" target="_blank" class="text-blue-400 hover:underline">$1</a>')
+        // Paragraphs
+        .replace(/\n\n/g, "</p><p class='mb-4 text-gray-300'>");
 }
 
 export default function ChatbotFancy() {
@@ -111,11 +54,13 @@ export default function ChatbotFancy() {
     const hasLoggedRef = useRef(false);
     const [usage, setUsage] = useState<any>(null);
     const [planLimits, setPlanLimits] = useState<any>(null);
+    const audioRef = useRef<HTMLAudioElement | null>(null);
 
     // Scroll state management
     const [isScrollLocked, setIsScrollLocked] = useState(true);
     const chatContainerRef = useRef<HTMLDivElement>(null);
 
+    // Update the scrollToBottom function
     const scrollToBottom = () => {
         if (chatContainerRef.current) {
             const scrollHeight = chatContainerRef.current.scrollHeight;
@@ -129,14 +74,23 @@ export default function ChatbotFancy() {
         }
     };
 
+    const stopCurrentAudio = () => {
+        if (audioRef.current) {
+            audioRef.current.pause();
+            audioRef.current.currentTime = 0;
+            URL.revokeObjectURL(audioRef.current.src);
+            audioRef.current = null;
+        }
+    };
+
     useEffect(() => {
         if (user?.uid) {
-            getUserUsage(user.uid).then(u => {
-                setUsage(u);
-                setPlanLimits(getPlanLimits(u.plan));
-            });
+          getUserUsage(user.uid).then(u => {
+            setUsage(u);
+            setPlanLimits(getPlanLimits(u.plan));
+          });
         }
-    }, [user]);
+      }, [user]);
 
     useEffect(() => {
         if (user?.uid && !hasLoggedRef.current) {
@@ -150,12 +104,35 @@ export default function ChatbotFancy() {
     }, [user]);
 
     useEffect(() => {
+        const handleVisibilityChange = () => {
+            if (document.hidden) {
+                stopCurrentAudio();
+            }
+        };
+    
+        const handleUnload = () => {
+            stopCurrentAudio();
+        };
+    
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+        window.addEventListener('beforeunload', handleUnload);
+    
+        return () => {
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
+            window.removeEventListener('beforeunload', handleUnload);
+            stopCurrentAudio(); // Cleanup on component unmount
+        };
+    }, []);
+
+    useEffect(() => {
         const lastMessage = messages[messages.length - 1];
         if (lastMessage && isScrollLocked) {
+            // Add a small delay to ensure content is rendered
             setTimeout(scrollToBottom, 100);
         }
     }, [messages, isScrollLocked]);
 
+    // Add a scroll handler to detect when user manually scrolls
     useEffect(() => {
         const container = chatContainerRef.current;
         if (!container) return;
@@ -172,6 +149,7 @@ export default function ChatbotFancy() {
 
     // Real-time chat subscription
     useEffect(() => {
+        // Clean up previous subscription if exists
         if (unsubscribeRef.current) {
             unsubscribeRef.current();
             unsubscribeRef.current = null;
@@ -184,6 +162,7 @@ export default function ChatbotFancy() {
 
         try {
             setIsLoading(true);
+            console.log("Setting up real-time chat listener for user:", user.uid);
 
             const chatQuery = query(
                 collection(db, "chats"),
@@ -192,13 +171,17 @@ export default function ChatbotFancy() {
                 limit(100)
             );
 
+            // Set up real-time listener
             unsubscribeRef.current = onSnapshot(chatQuery, (snapshot) => {
                 const loadedMessages: Message[] = [];
 
                 snapshot.docs.forEach(doc => {
                     const data = doc.data();
+
+                    // Ensure timestamp is properly handled
                     let timestamp = new Date();
                     if (data.timestamp) {
+                        // Handle both Firestore Timestamp objects and date strings
                         timestamp = data.timestamp instanceof Timestamp
                             ? data.timestamp.toDate()
                             : new Date(data.timestamp);
@@ -219,6 +202,7 @@ export default function ChatbotFancy() {
                 setMessages(loadedMessages);
                 setIsLoading(false);
 
+                // Scroll to bottom after messages load
                 if (loadedMessages.length > 0) {
                     setTimeout(() => {
                         scrollToBottom();
@@ -237,8 +221,10 @@ export default function ChatbotFancy() {
             setIsLoading(false);
         }
 
+        // Clean up on component unmount or user change
         return () => {
             if (unsubscribeRef.current) {
+                console.log("Cleaning up chat listener");
                 unsubscribeRef.current();
                 unsubscribeRef.current = null;
             }
@@ -246,11 +232,13 @@ export default function ChatbotFancy() {
     }, [user]);
 
 
+    // Save message to Firebase with proper error handling
     const saveMessageToFirebase = async (message: Message) => {
         try {
             if (!user?.uid) {
+                console.error("No authenticated user");
                 toast.error("You need to be logged in to send messages");
-                return message;
+                return message; // Return original message if no user
             }
 
             const messageData = {
@@ -261,7 +249,9 @@ export default function ChatbotFancy() {
             };
 
             const docRef = await addDoc(collection(db, "chats"), messageData);
+            console.log("Message saved with ID:", docRef.id);
 
+            // Return the complete message object with ID
             return {
                 ...message,
                 id: docRef.id,
@@ -269,13 +259,16 @@ export default function ChatbotFancy() {
                 timestamp: new Date()
             };
         } catch (error) {
+            console.error("Error saving message:", error);
             toast.error("Failed to save message");
+            // Return original message if save fails
             return message;
         }
     };
-
+    
     const ChatLimits = ({ usage, planLimits }: { usage: any; planLimits: any }) => {
         const chatsLeft = Math.max(0, (planLimits?.chats ?? 0) - (usage?.chatsToday ?? 0));
+        
         return (
             <motion.div
                 initial={{ opacity: 0, y: -20 }}
@@ -300,11 +293,15 @@ export default function ChatbotFancy() {
     const handleSend = async () => {
         if (!input.trim() || isLoading) return;
 
+        stopCurrentAudio();
+    
+        // Check auth and limits
         if (!user?.uid) {
             toast.error("You must be logged in to use this feature.");
             return;
         }
 
+        // Get latest usage before checking limits
         const currentUsage = await getUserUsage(user.uid);
         const currentLimits = getPlanLimits(currentUsage.plan);
 
@@ -312,7 +309,7 @@ export default function ChatbotFancy() {
             toast.error(`You have reached your daily chat limit (${currentLimits.chats}).`);
             return;
         }
-
+    
         try {
             setIsLoading(true);
             const userMsg: Message = {
@@ -323,18 +320,22 @@ export default function ChatbotFancy() {
 
             setInput("");
             setIsScrollLocked(true);
-
+    
+            // Save user message first
             await saveMessageToFirebase(userMsg);
-
+    
+            // Increment chat usage and get updated usage
             await incrementUsage(user.uid, "chatsToday");
             const updatedUsage = await getUserUsage(user.uid);
             setUsage(updatedUsage);
-
+    
+            // Get chat history
             const conversationHistory = messages.concat(userMsg).map(msg => ({
                 role: msg.sender === "user" ? "user" : "assistant",
                 content: msg.text
             }));
-
+    
+            // Get bot response
             const response = await fetch("http://localhost:5000/chat/text", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -345,27 +346,30 @@ export default function ChatbotFancy() {
             });
 
             if (!response.ok) throw new Error("Network response was not ok");
-
+    
             const data = await response.json();
             if (!data.response) throw new Error("No response from server");
-
+    
             const botMsg: Message = {
                 sender: "bot",
                 text: data.response,
                 timestamp: new Date(),
             };
-
+    
+            // Save bot message
             await saveMessageToFirebase(botMsg);
-
+    
+            // Update UI for typewriter effect
             setMessages(prev => prev.map((msg, idx) =>
                 idx === prev.length - 1 && msg.sender === "bot"
                     ? { ...msg, isNew: true }
                     : { ...msg, isNew: false }
             ));
-
-            await speak(stripMarkdownAndHtml(data.response));
-
+    
+            await speak(data.response);
+    
         } catch (error) {
+            console.error("Error:", error);
             toast.error("Failed to get response from chatbot");
         } finally {
             setIsLoading(false);
@@ -374,36 +378,47 @@ export default function ChatbotFancy() {
 
     const speak = async (text: string) => {
         try {
+            stopCurrentAudio();
+
             const response = await fetch("http://localhost:5000/chat/speak", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ text }),
             });
 
+            // If response is not ok, silently fail without showing error toast
             if (!response.ok) {
-                return;
+                console.log("TTS limit exceeded or error occurred - continuing without audio");
+                return; // Just return without throwing error or showing toast
             }
 
             const blob = await response.blob();
-            if (blob.size === 0) return;
+            if (blob.size === 0) return; // Silently fail if no audio data
 
             const audioUrl = URL.createObjectURL(blob);
             const audio = new Audio(audioUrl);
+            audioRef.current = audio;
 
-            await new Promise((resolve) => {
+            await new Promise((resolve, reject) => {
                 audio.onended = () => {
                     URL.revokeObjectURL(audioUrl);
+                    audioRef.current = null;
                     resolve(null);
                 };
                 audio.onerror = () => {
                     URL.revokeObjectURL(audioUrl);
-                    resolve(null);
+                    audioRef.current = null;
+                    resolve(null); // Resolve instead of reject to avoid error
                 };
-                audio.play().catch(() => resolve(null));
+                audio.play().catch(() => {
+                    audioRef.current = null;
+                    resolve(null);
+                });
             });
 
         } catch (error) {
-            // Silent fail
+            // Just log to console without showing toast
+            console.log("Audio playback unavailable:", error);
         }
     };
 
@@ -448,17 +463,18 @@ export default function ChatbotFancy() {
             try {
                 setIsLoading(true);
                 const savedUserMsg = await saveMessageToFirebase(userMsg);
+                await incrementUsage(user.uid, "chatsToday");
+                const updatedUsage = await getUserUsage(user.uid);
+                setUsage(updatedUsage);
+        
                 setIsScrollLocked(true);
 
+                // Create conversation history including the new message
                 const currentMessages = [...messages, savedUserMsg];
                 const conversationHistory = currentMessages.map(msg => ({
                     role: msg.sender === "user" ? "user" : "assistant",
                     content: msg.text
                 }));
-
-                await incrementUsage(user.uid, "chatsToday");
-                const updatedUsage = await getUserUsage(user.uid);
-                setUsage(updatedUsage);
 
                 const response = await fetch("http://localhost:5000/chat/text", {
                     method: "POST",
@@ -491,6 +507,7 @@ export default function ChatbotFancy() {
                 await speak(data.response);
 
             } catch (error) {
+                console.error("Error:", error);
                 toast.error("Failed to get response from chatbot");
             } finally {
                 setIsLoading(false);
@@ -575,22 +592,15 @@ export default function ChatbotFancy() {
                                             ? "bg-blue-500 text-white"
                                             : "bg-white/20 text-white"
                                             } shadow-md`}>
-                                            {msg.sender === "bot" && msg.isNew ? (
-                                                <TypewriterText
-                                                    text={msg.text}
-                                                    onComplete={scrollToBottom}
+                                            {msg.sender === "bot" ? (
+                                                <div
+                                                    className="prose prose-invert prose-purple max-w-none"
+                                                    dangerouslySetInnerHTML={{
+                                                        __html: formatMarkdown(msg.text)
+                                                    }}
                                                 />
                                             ) : (
-                                                msg.sender === "bot" ? (
-                                                    <div
-                                                        className="whitespace-pre-wrap break-words prose prose-invert prose-purple max-w-none"
-                                                        dangerouslySetInnerHTML={{ __html: formatResponseText(msg.text) }}
-                                                    />
-                                                ) : (
-                                                    <div className="whitespace-pre-wrap break-words">
-                                                        {msg.text}
-                                                    </div>
-                                                )
+                                                <span>{msg.text}</span>
                                             )}
                                         </div>
                                     </div>
