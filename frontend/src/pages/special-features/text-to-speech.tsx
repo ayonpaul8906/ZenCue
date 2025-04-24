@@ -54,7 +54,7 @@ const TextToSpeech = () => {
 
       <motion.textarea
         className="w-full mt-4 p-4 border-2 border-gray-600 bg-gray-700 text-gray-100 rounded-md focus:ring-purple-500 focus:border-purple-500"
-        rows="4"
+        rows={4}
         value={text}
         onChange={(e) => setText(e.target.value)}
         placeholder="Type your text here..."
