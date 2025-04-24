@@ -1,4 +1,4 @@
-// hooks/useSubscriptionPayment.ts
+
 import { useSendTransaction, useChainId } from 'wagmi';
 import { parseEther } from 'viem';
 import toast from 'react-hot-toast';
