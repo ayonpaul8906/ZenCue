@@ -89,7 +89,7 @@ const About: React.FC = () => {
               className="bg-gray-800 p-6 rounded-lg shadow-lg text-center w-64 hover:shadow-pink-400/50 transition-all border border-gray-700"
             >
               <img
-                src="../../public/ayon.jpg"
+                src="/ayon.jpg"
                 alt="Team Member"
                 className="rounded-full mx-auto mb-4 border-4 border-purple-400"
               />
@@ -104,7 +104,7 @@ const About: React.FC = () => {
               className="bg-gray-800 p-6 rounded-lg shadow-lg text-center w-64 hover:shadow-pink-400/50 transition-all border border-gray-700"
             >
               <img
-                src="../../public/arnab.jpg"
+                src="/arnab.jpg"
                 alt="Team Member"
                 className="rounded-full mx-auto mb-4 border-4 border-purple-400"
               />
@@ -119,7 +119,7 @@ const About: React.FC = () => {
               className="bg-gray-800 p-6 rounded-lg shadow-lg text-center w-64 hover:shadow-pink-400/50 transition-all border border-gray-700"
             >
               <img
-                src="../../public/soumi.jpg"
+                src="/soumi.jpg"
                 alt="Team Member"
                 className="rounded-full mx-auto mb-4 border-4 border-purple-400"
               />
@@ -133,7 +133,7 @@ const About: React.FC = () => {
               className="bg-gray-800 p-6 rounded-lg shadow-lg text-center w-64 hover:shadow-pink-400/50 transition-all border border-gray-700"
             >
               <img
-                src="../../public/sudipta.jpg"
+                src="/sudipta.jpg"
                 alt="Team Member"
                 className="rounded-full mx-auto mb-4 border-4 border-purple-400"
               />
