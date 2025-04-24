@@ -234,7 +234,7 @@ const NeurodivergentResourcesPage = () => {
   const { user } = useAuth();
   const hasLoggedRef = useRef(false);
   const [setUsage] = useState<any>(null);
-  const [setPlanLimits] = useState<any>(null);
+  const [ setPlanLimits] = useState<any>(null);
   const navigate = useNavigate();
 
   useEffect(() => {

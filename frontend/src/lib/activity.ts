@@ -12,7 +12,7 @@ export const ActivityTypes = {
 
 export interface UserActivity {
     id?: string;
-    type: keyof typeof ActivityTypes;
+    type: (typeof ActivityTypes)[keyof typeof ActivityTypes];
     action: string;
     details?: string;
     timestamp: Date;

@@ -4,7 +4,7 @@ import { parseEther } from 'viem';
 import toast from 'react-hot-toast';
 import { sepolia } from 'viem/chains';
 import { useEffect } from 'react';
-import { storeSubscription } from '../lib/subscriptions'; // Import the function
+import { storeSubscription } from '../lib/subscriptions';
 
 interface PlanDetails {
   id: number;
@@ -17,7 +17,7 @@ export function useSubscriptionPayment(plan: PlanDetails) {
   const currentChainId = useChainId();
 
   const {
-    data,
+    data: txHash,
     sendTransaction,
     isPending,
     isSuccess,
@@ -44,7 +44,7 @@ export function useSubscriptionPayment(plan: PlanDetails) {
     if (isSuccess) {
       toast.dismiss();
       toast.success('Payment successful 🎉');
-      // Store subscription details in Firestore
+
       storeSubscription({
         planId: plan.id,
         planTitle: plan.title,
@@ -52,7 +52,7 @@ export function useSubscriptionPayment(plan: PlanDetails) {
         ethValue: plan.ethValue,
       });
     }
-  }, [isSuccess, plan]); // Make sure to include 'plan' in the dependency array
+  }, [isSuccess, plan]);
 
   useEffect(() => {
     if (isError && error?.message.toLowerCase().includes('user rejected')) {
@@ -65,6 +65,6 @@ export function useSubscriptionPayment(plan: PlanDetails) {
     initiatePayment,
     isPending,
     isSuccess,
-    transactionHash: data?.hash,
+    transactionHash: txHash, 
   };
 }

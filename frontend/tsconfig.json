@@ -9,7 +9,7 @@
     "strict": true,
     "skipLibCheck": true,
       "noEmit": true,
-      "forceConsistentCasingInFileNames": false
+      "forceConsistentCasingInFileNames": false,
+      "typeRoots": ["./node_modules/@types", "./frontend/src/types"]
   }
-
 }
