@@ -2,7 +2,6 @@ import { motion } from "framer-motion";
 import { Navigation } from '../components/navigation';
 import { Footer } from '../components/footer';
 import { Sparkles } from "lucide-react";
-import React from "react";
 
 export default function ZenCueFullDocPage() {
   return (
