@@ -20,7 +20,6 @@ import { useAuth } from "../hooks/AuthContext";
 import { logActivity, ActivityTypes } from '../lib/activity';
 import { getUserUsage, incrementUsage, getPlanLimits } from '../lib/usageService';
 
-// Add this after your imports
 function formatMarkdown(text: string) {
     return text
         // Headers

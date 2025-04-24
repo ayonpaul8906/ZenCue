@@ -17,6 +17,7 @@ export interface Message {
   userId?: string;
   conversationId?: string;
   contextId?: string;
+  isNew?: boolean;
 }
 
 export interface UserUsage {
