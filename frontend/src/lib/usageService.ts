@@ -15,6 +15,7 @@ export async function getUserUsage(uid: string) {
     const subRef = doc(db, 'subscriptions', uid);
     const subSnap = await getDoc(subRef);
     let plan = 'none';
+    
     if (subSnap.exists()) {
       const subData = subSnap.data();
       if (subData.status === 'active') {
@@ -25,38 +26,44 @@ export async function getUserUsage(uid: string) {
       }
     }
 
-    if (plan === 'free') {
+    // For free plan
+    if (plan === 'free' || plan === 'none') {
       const userRef = doc(db, 'users', uid);
       const userSnap = await getDoc(userRef);
       const userData = userSnap.exists() ? userSnap.data() : {};
       return {
         textexplanations: userData.totalTextExplanations || 0,
         imageexplanations: userData.totalImageExplanations || 0,
-        chatsToday: userData.totalChats || 0, // Add this line
+        chatsToday: userData.totalChats || 0,
         plan,
-        limits: PLAN_LIMITS[plan as keyof typeof PLAN_LIMITS]
+        limits: PLAN_LIMITS[plan as keyof typeof PLAN_LIMITS],
+        mindzone: false // Explicitly set mindzone to false for free plan
       };
     }
 
-    // For paid plans, use daily usage
+    // For paid plans
     const today = new Date().toISOString().slice(0, 10);
     const usageRef = doc(db, 'users', uid, 'usage', today);
     const usageSnap = await getDoc(usageRef);
     let usageData = usageSnap.exists()
       ? usageSnap.data()
-      : { textexplanations: 0, imageexplanations: 0 };
+      : { textexplanations: 0, imageexplanations: 0, chatsToday: 0 };
+    
     return {
       ...usageData,
       plan,
-      limits: PLAN_LIMITS[plan as keyof typeof PLAN_LIMITS]
+      limits: PLAN_LIMITS[plan as keyof typeof PLAN_LIMITS],
+      mindzone: true // Paid plans have mindzone access
     };
   } catch (error) {
     console.error('Error getting user usage:', error);
     return {
       textexplanations: 0,
       imageexplanations: 0,
+      chatsToday: 0,
       plan: 'none',
-      limits: PLAN_LIMITS.none
+      limits: PLAN_LIMITS.none,
+      mindzone: false // Default to no mindzone access
     };
   }
 }

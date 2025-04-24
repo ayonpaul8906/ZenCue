@@ -7,6 +7,9 @@ import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
 import { getFirestore, doc, setDoc, onSnapshot, getDoc, serverTimestamp } from "firebase/firestore";
 import { app } from "../lib/firebase";
+import type { Message } from "../components/types/global";
+
+
 
 // Simple icons using SVG for better accessibility
 const CheckIcon = () => (

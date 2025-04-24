@@ -4,6 +4,11 @@ declare global {
     SpeechRecognition: any;
     cloudinary: any;
   }
+  namespace JSX {
+    interface IntrinsicElements {
+      [elemName: string]: any;
+    }
+  }
 }
 
 
