@@ -9,7 +9,7 @@ import speech_recognition as sr
 load_dotenv()
 
 app = Flask(__name__)
-CORS(app, origins=["http://localhost:5173","https://zen-cue.vercel.app/"]) 
+CORS(app, origins=["http://localhost:5173","https://zen-cue-xi7p.vercel.app/"]) 
 
 # Config
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
