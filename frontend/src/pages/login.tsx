@@ -28,7 +28,7 @@ export default function Login() {
       login(user); // Update the AuthContext with the logged-in user
   
       // Play success sound
-      const audio = new Audio("../../public/success-sound.mp3"); // Replace with your success sound file
+      const audio = new Audio("/success-sound.mp3"); // Replace with your success sound file
       audio.play();
   
       // Show success toast
