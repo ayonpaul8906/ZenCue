@@ -225,7 +225,7 @@ function App() {
     const playGroqAudio = async (text: string) => {
         try {
             setIsSpeaking(true);
-            const response = await fetch('${import.meta.env.VITE_BACKEND_URL}/chat/speak', {
+            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/chat/speak`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ text }),
@@ -323,7 +323,7 @@ function App() {
         setIsLoading(true);
 
         try {
-            const res = await axios.post('${import.meta.env.VITE_BACKEND_URL}/explain', {
+            const res = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/explain`, {
                 text: content,
             });
 
@@ -373,7 +373,7 @@ function App() {
         setImagePreview(imageUrl);
     
         try {
-            const res = await axios.post('${import.meta.env.VITE_BACKEND_URL}/explain-image', {
+            const res = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/explain-image`, {
                 image_url: imageUrl,
             });
     
