@@ -7,16 +7,23 @@ import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
 import { getFirestore, doc, setDoc, onSnapshot, getDoc, serverTimestamp } from "firebase/firestore";
 import { app } from "../lib/firebase";
+import type { SubscriptionPlan } from '../hooks/useSubscriptionPayment';
+
 
 // Simple icons using SVG for better accessibility
 const CheckIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" className="text-green-600">
-    <circle cx="10" cy="10" r="9" strokeWidth="2"/>
-    <path d="M6.5 10L9 12.5L14 7.5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    <circle cx="10" cy="10" r="9" strokeWidth="2" />
+    <path d="M6.5 10L9 12.5L14 7.5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
   </svg>
 );
 
-const PLAN_LIMITS = {
+const PLAN_LIMITS: Record<string, {
+  textexplanations: number;
+  imageexplanations: number;
+  chats: number;
+  mindzone: boolean;
+}> = {
   free: { textexplanations: 5, imageexplanations: 5, chats: 10, mindzone: false },
   silver: { textexplanations: 10, imageexplanations: 10, chats: 30, mindzone: true },
   gold: { textexplanations: 20, imageexplanations: 20, chats: 60, mindzone: true },
@@ -24,7 +31,7 @@ const PLAN_LIMITS = {
   none: { textexplanations: 0, imageexplanations: 0, chats: 0, mindzone: false }
 };
 
-const subscriptionPlans = [
+const subscriptionPlans: SubscriptionPlan[] = [
   {
     id: 1,
     title: "Free Plan",
@@ -112,9 +119,9 @@ const subscriptionPlans = [
 
 export function SubscriptionPlan() {
   const { user, isWalletConnected, connectWallet } = useAuth();
-  const [currentPlanId, setCurrentPlanId] = useState(null);
-  const [hoveredCard, setHoveredCard] = useState(null);
-  const [freePlanClaimed, setFreePlanClaimed] = useState(false);
+  const [currentPlanId, setCurrentPlanId] = useState<number | null>(null);
+  const [hoveredCard, setHoveredCard] = useState<number | null>(null);
+  const [freePlanClaimed, setFreePlanClaimed] = useState<boolean>(false);
   const firestore = getFirestore(app);
 
   useEffect(() => {
@@ -131,7 +138,7 @@ export function SubscriptionPlan() {
       const subscriptionRef = doc(firestore, 'subscriptions', user.uid);
       const unsubscribe = onSnapshot(subscriptionRef, (docSnapshot) => {
         if (docSnapshot.exists()) {
-          const subscriptionData = docSnapshot.data();
+          const subscriptionData = docSnapshot.data() as { planId: number };
           setCurrentPlanId(subscriptionData.planId);
         } else {
           // Check if they have at least the free plan from user document
@@ -193,7 +200,8 @@ export function SubscriptionPlan() {
   };
 
   // Only update plan after payment and Firestore update succeed
-  const updateSubscriptionAfterPayment = async (plan) => {
+
+  const updateSubscriptionAfterPayment = async (plan: SubscriptionPlan) => {
     try {
       const subscriptionRef = doc(firestore, 'subscriptions', user.uid);
       await setDoc(subscriptionRef, {
@@ -252,7 +260,7 @@ export function SubscriptionPlan() {
         </div>
 
         <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
-          {subscriptionPlans.map((plan, index) => {
+          {subscriptionPlans.map((plan: SubscriptionPlan, index) => {
             const { initiatePayment, isPending } = useSubscriptionPayment(plan);
             const isCurrentPlan = currentPlanId === plan.id;
             const currentPlanHighlight = isCurrentPlan ?

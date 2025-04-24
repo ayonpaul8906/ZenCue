@@ -6,14 +6,35 @@ import { sepolia } from 'viem/chains';
 import { useEffect } from 'react';
 import { storeSubscription } from '../lib/subscriptions';
 
-interface PlanDetails {
+interface PlanLimits {
+  textexplanations: number;
+  imageexplanations: number;
+  chats: number;
+  mindzone: boolean;
+}
+
+export interface PlanDetails {
   id: number;
   title: string;
   price: string;
   ethValue: string;
 }
 
-export function useSubscriptionPayment(plan: PlanDetails) {
+export interface SubscriptionPlan {
+  id: number;
+  title: string;
+  emoji: string;
+  color: string;
+  borderColor: string;
+  buttonColor: string;
+  description: string;
+  features: string[];
+  price: string;
+  ethValue: string;
+  limits: PlanLimits;
+}
+
+export function useSubscriptionPayment(plan: PlanDetails | SubscriptionPlan) {
   const currentChainId = useChainId();
 
   const {
@@ -27,17 +48,24 @@ export function useSubscriptionPayment(plan: PlanDetails) {
 
   const receiverAddress = import.meta.env.VITE_RECEIVER_ADDRESS as `0x${string}`;
 
-  const initiatePayment = () => {
+  const initiatePayment = async (): Promise<boolean> => {
     if (currentChainId !== sepolia.id) {
       toast.error('Please switch to Sepolia network in your wallet...');
-      return;
+      return false;
     }
-
-    toast.loading('Sending payment...');
-    sendTransaction({
-      to: receiverAddress,
-      value: parseEther(plan.ethValue),
-    });
+  
+    try {
+      toast.loading('Sending payment...');
+      await sendTransaction({
+        to: receiverAddress,
+        value: parseEther(plan.ethValue),
+      });
+      return true;
+    } catch (err) {
+      toast.dismiss();
+      toast.error('Payment failed or cancelled.');
+      return false;
+    }
   };
 
   useEffect(() => {
