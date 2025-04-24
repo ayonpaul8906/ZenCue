@@ -37,7 +37,7 @@ export function Navigation() {
 
   // Alert sound
   const playAlertSound = () => {
-    const audio = new Audio("../../public/alert-sound.mp3"); // Replace with the path to your alert sound file
+    const audio = new Audio("/alert-sound.mp3"); // Replace with the path to your alert sound file
     audio.play();
   };
 
