@@ -5,28 +5,28 @@ import { ArrowLeft } from "lucide-react";
 const articles = [
   {
     title: "Understanding ADHD: A Comprehensive Guide",
-    image: "..//../../public/ADHD.png",
+    image: "/ADHD.png",
     link: "https://www.brightpinepsychology.com/understanding-adhd-a-comprehensive-guide-to-its-types-and-characteristics/",
     description:
       "An in-depth look at ADHD, its symptoms, and strategies to manage it in everyday life.",
   },
   {
     title: "Dyslexia: Signs, Symptoms, and Solutions",
-    image: "..//../../public/dyslexia.jpg",
+    image: "/dyslexia.jpg",
     link: "https://my.clevelandclinic.org/health/diseases/6005-dyslexia",
     description:
       "Learn about dyslexia, its challenges, and how individuals can thrive with support and interventions.",
   },
   {
     title: "Neurodivergence: A New Perspective on the Brain",
-    image: "..//../../public/Neurodivergence.webp",
+    image: "/Neurodivergence.webp",
     link: "https://blog.siemens.com/en/2024/10/neurodiversity-a-new-perspective-on-the-human-brain/",
     description:
       "Discover the concept of neurodivergence and how it challenges traditional views of cognitive diversity.",
   },
   {
     title: "Support Systems for Neurodivergent Individuals",
-    image: "..//../../public/SupportSystem.png",
+    image: "/SupportSystem.png",
     link: "https://www.researchgate.net/publication/348095617_Global_Neurodiverse_Support_Systems_Primary_Research_Findings_on_Key_Challenges_and_Optimized_Solutions_in_Mumbai_India",
     description:
       "How to create support systems for individuals with neurodivergent traits in both educational and workplace environments.",
