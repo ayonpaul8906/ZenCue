@@ -203,6 +203,8 @@ export function SubscriptionPlan() {
 
   const updateSubscriptionAfterPayment = async (plan: SubscriptionPlan) => {
     try {
+      if (!user) return;
+
       const subscriptionRef = doc(firestore, 'subscriptions', user.uid);
       await setDoc(subscriptionRef, {
         userId: user.uid,

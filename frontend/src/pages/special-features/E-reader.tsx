@@ -24,9 +24,10 @@ const SpecializedEReader = () => {
   ];
 
   // Function to handle text input
-  const handleTextChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleTextChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
     setText(event.target.value);
   };
+  
 
   // Adjust font size dynamically
   const increaseFontSize = () => {
@@ -67,7 +68,7 @@ const SpecializedEReader = () => {
           placeholder="Enter your text here..."
           value={text}
           onChange={handleTextChange}
-          rows="8"
+          rows={8}
           className="w-full p-4 border-2 border-gray-600 rounded-lg mt-4 text-gray-100 bg-gray-700 focus:ring-purple-500 focus:border-purple-500"
           style={{ fontSize: `${fontSize}px`, fontFamily: fontFamily, backgroundColor: bgColor }}
         />
