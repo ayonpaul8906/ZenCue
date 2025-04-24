@@ -9,6 +9,15 @@ import { getFirestore, doc, setDoc, onSnapshot, getDoc, serverTimestamp } from "
 import { app } from "../lib/firebase";
 import type { SubscriptionPlan } from '../hooks/useSubscriptionPayment';
 
+interface UserData {
+  freePlanClaimed?: boolean;
+  hasStartedFreePlan?: boolean;
+}
+
+interface SubscriptionData {
+  planId: number;
+  status: 'active' | 'inactive';
+}
 
 // Simple icons using SVG for better accessibility
 const CheckIcon = () => (
@@ -125,38 +134,79 @@ export function SubscriptionPlan() {
   const firestore = getFirestore(app);
 
   useEffect(() => {
-    if (user?.uid) {
-      const userDocRef = doc(firestore, 'users', user.uid);
-      getDoc(userDocRef).then((userDocSnapshot) => {
-        if (userDocSnapshot.exists()) {
-          const userData = userDocSnapshot.data();
-          setFreePlanClaimed(!!userData?.freePlanClaimed);
+    if (!user?.uid) return;
+  
+    let userUnsubscribe: (() => void) | undefined;
+    let subscriptionUnsubscribe: (() => void) | undefined;
+  
+    // Check if free plan is claimed
+    const checkFreePlan = async () => {
+      try {
+        const userDocRef = doc(firestore, 'users', user.uid);
+        const userDocSnap = await getDoc(userDocRef);
+        
+        if (userDocSnap.exists()) {
+          const userData = userDocSnap.data() as UserData;
+          setFreePlanClaimed(!!userData.freePlanClaimed);
         }
-      });
-
-      // Listen for subscription changes
+      } catch (error) {
+        console.error("Error checking free plan:", error);
+      }
+    };
+  
+    // Listen for subscription changes
+    const setupSubscriptionListener = () => {
       const subscriptionRef = doc(firestore, 'subscriptions', user.uid);
-      const unsubscribe = onSnapshot(subscriptionRef, (docSnapshot) => {
-        if (docSnapshot.exists()) {
-          const subscriptionData = docSnapshot.data() as { planId: number };
-          setCurrentPlanId(subscriptionData.planId);
-        } else {
-          // Check if they have at least the free plan from user document
-          const userDocRef = doc(firestore, 'users', user.uid);
-          onSnapshot(userDocRef, (userDocSnapshot) => {
-            if (userDocSnapshot.exists()) {
-              const userData = userDocSnapshot.data();
-              if (userData?.hasStartedFreePlan) {
-                setCurrentPlanId(1); // Set free plan as current
-              } else {
+      
+      subscriptionUnsubscribe = onSnapshot(subscriptionRef, 
+        (docSnapshot) => {
+          if (docSnapshot.exists()) {
+            const subscriptionData = docSnapshot.data() as SubscriptionData;
+            
+            if (subscriptionData.status === 'active') {
+              setCurrentPlanId(subscriptionData.planId);
+            } else {
+              setCurrentPlanId(null);
+            }
+          } else {
+            // No subscription found, check for free plan
+            const userDocRef = doc(firestore, 'users', user.uid);
+            
+            userUnsubscribe = onSnapshot(userDocRef, 
+              (userDocSnapshot) => {
+                if (userDocSnapshot.exists()) {
+                  const userData = userDocSnapshot.data() as UserData;
+                  
+                  if (userData?.hasStartedFreePlan) {
+                    setCurrentPlanId(1); // Set free plan as current
+                  } else {
+                    setCurrentPlanId(null);
+                  }
+                }
+              },
+              (error) => {
+                console.error("Error listening to user document:", error);
                 setCurrentPlanId(null);
               }
-            }
-          });
+            );
+          }
+        },
+        (error) => {
+          console.error("Error listening to subscription:", error);
+          setCurrentPlanId(null);
         }
-      });
-      return () => unsubscribe();
-    }
+      );
+    };
+  
+    // Initial setup
+    checkFreePlan();
+    setupSubscriptionListener();
+  
+    // Cleanup function
+    return () => {
+      if (subscriptionUnsubscribe) subscriptionUnsubscribe();
+      if (userUnsubscribe) userUnsubscribe();
+    };
   }, [user?.uid, firestore]);
 
   const handleRestrictedAccess = () => {
@@ -196,32 +246,6 @@ export function SubscriptionPlan() {
     } catch (error) {
       console.error("Error starting free plan:", error);
       toast.error("Oops! Something went wrong. Let's try again!");
-    }
-  };
-
-  // Only update plan after payment and Firestore update succeed
-
-  const updateSubscriptionAfterPayment = async (plan: SubscriptionPlan) => {
-    try {
-      if (!user) return;
-
-      const subscriptionRef = doc(firestore, 'subscriptions', user.uid);
-      await setDoc(subscriptionRef, {
-        userId: user.uid,
-        planId: plan.id,
-        planTitle: plan.title,
-        price: plan.price,
-        ethValue: plan.ethValue,
-        purchaseDate: serverTimestamp(),
-        status: 'active',
-        limits: plan.limits
-      });
-
-      setCurrentPlanId(plan.id);
-      toast.success(`Yay! You now have the ${plan.title}!`);
-    } catch (error) {
-      console.error("Error updating subscription:", error);
-      toast.error("Payment was successful, but we couldn't update your plan. Please contact support.");
     }
   };
 
@@ -325,15 +349,11 @@ export function SubscriptionPlan() {
                             Your Current Plan
                           </Button>
                         ) : isWalletConnected ? (
-                          <Button
+                         <Button
                             className={`w-full ${plan.buttonColor} text-white font-medium py-3 rounded-xl shadow-md transition-all duration-200`}
                             onClick={async () => {
                               try {
-                                const paymentSuccess = await initiatePayment();
-                                if (paymentSuccess) {
-                                  await updateSubscriptionAfterPayment(plan);
-                                }
-                                // If payment failed or cancelled, do nothing!
+                                await initiatePayment();
                               } catch (error) {
                                 console.error("Payment failed:", error);
                                 toast.error("Payment failed. Please try again.");
