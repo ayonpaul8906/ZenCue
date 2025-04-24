@@ -335,7 +335,7 @@ export default function ChatbotFancy() {
             }));
     
             // Get bot response
-            const response = await fetch("http://localhost:5000/chat/text", {
+            const response = await fetch("${import.meta.env.VITE_BACKEND_URL}/chat/text", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -379,7 +379,7 @@ export default function ChatbotFancy() {
         try {
             stopCurrentAudio();
 
-            const response = await fetch("http://localhost:5000/chat/speak", {
+            const response = await fetch("${import.meta.env.VITE_BACKEND_URL}/chat/speak", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ text }),
@@ -475,7 +475,7 @@ export default function ChatbotFancy() {
                     content: msg.text
                 }));
 
-                const response = await fetch("http://localhost:5000/chat/text", {
+                const response = await fetch("${import.meta.env.VITE_BACKEND_URL}/chat/text", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
