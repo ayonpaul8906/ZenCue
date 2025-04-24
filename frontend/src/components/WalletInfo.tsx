@@ -9,7 +9,7 @@ export default function WalletInfo() {
   const { disconnect } = useDisconnect();
 
   // Path to local image in /public folder
-  const localAvatar = '../../public/avatar.png';
+  const localAvatar = '/avatar.png';
 
   useEffect(() => {
     if (!isConnected) return;
