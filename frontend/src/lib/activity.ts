@@ -1,5 +1,5 @@
 import { db } from './firebase';
-import { collection, addDoc, query, where, orderBy, Timestamp, deleteDoc, getDocs } from 'firebase/firestore';
+import { collection, addDoc, query, where, Timestamp, deleteDoc, getDocs } from 'firebase/firestore';
 
 export const ActivityTypes = {
     PROFILE_UPDATE: 'profile_update',

@@ -1,4 +1,4 @@
-import { initializeApp, FirebaseOptions } from "firebase/app";
+import { initializeApp} from "firebase/app";
 import { Analytics, getAnalytics, isSupported } from "firebase/analytics";
 import { getAuth, setPersistence, browserLocalPersistence, Auth } from "firebase/auth";
 import { 

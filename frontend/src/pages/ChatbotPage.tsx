@@ -398,7 +398,7 @@ export default function ChatbotFancy() {
             const audio = new Audio(audioUrl);
             audioRef.current = audio;
 
-            await new Promise((resolve, reject) => {
+            await new Promise((resolve) => {
                 audio.onended = () => {
                     URL.revokeObjectURL(audioUrl);
                     audioRef.current = null;

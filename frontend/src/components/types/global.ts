@@ -11,9 +11,6 @@ declare global {
   }
 }
 
-
-
-
 export interface Message {
   id?: string;
   sender: "user" | "bot";
@@ -33,6 +30,36 @@ export interface UserUsage {
   freeClaimed: boolean;
 }
 
+export interface PlanLimits {
+  textexplanations: number;
+  imageexplanations: number;
+  chats: number;
+  mindzone: boolean;
+}
 
+export interface SubscriptionPlan {
+  id: number;
+  title: string;
+  emoji: string;
+  color: string;
+  borderColor: string;
+  buttonColor: string;
+  description: string;
+  features: string[];
+  price: string;
+  ethValue: string;
+  limits: PlanLimits;
+}
+
+export interface UserSubscription {
+  userId: string;
+  planId: number;
+  planTitle: string;
+  price: string;
+  ethValue: string;
+  purchaseDate: any; // FirebaseTimestamp
+  status: 'active' | 'inactive';
+  limits: PlanLimits;
+}
 
 // export {};
