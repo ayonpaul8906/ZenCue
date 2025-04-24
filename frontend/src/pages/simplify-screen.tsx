@@ -323,7 +323,7 @@ function App() {
         setIsLoading(true);
 
         try {
-            const res = await axios.post('http://localhost:5000/explain', {
+            const res = await axios.post('${import.meta.env.VITE_BACKEND_URL}/explain', {
                 text: content,
             });
 
@@ -373,7 +373,7 @@ function App() {
         setImagePreview(imageUrl);
     
         try {
-            const res = await axios.post('http://localhost:5000/explain-image', {
+            const res = await axios.post('${import.meta.env.VITE_BACKEND_URL}/explain-image', {
                 image_url: imageUrl,
             });
     
