@@ -5,3 +5,4 @@ firebase-admin
 python-dotenv
 SpeechRecognition
 groq
+gunicorn
