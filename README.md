@@ -1,118 +1,159 @@
-# 🧠 ZenCue — Neuro-AI Assistant for Web Clarity
+![github-submission-banner](https://github.com/user-attachments/assets/a1493b84-e4e2-456e-a791-ce35ee2bcf2f)
 
-ZenCue is a cutting-edge, neuro-accessible web platform designed to empower neurodivergent users by enhancing their focus, comprehension, and digital interaction using AI, multimodal tools, and blockchain-based subscriptions.
+# 🚀 ZenCue
 
-Built with ❤️ for ADHD, dyslexic, and neurodivergent communities.
+> _Empowering neurodivergent kids through smart, secure, and supportive AI tools._
 
 ---
 
+## 📌 Problem Statements
+ 
+- **Problem Statement 1 –** Weave AI magic with Groq
+- **Problem Statement 4 –** Craft the future of unseen consumer experience with base
 
-## 🧩 Features
 
-### 🧠 AI Assistant (Groq + Flask)
-- **Text Simplifier** — Converts complex content into readable summaries.
-- **Visual Aid** — Understand screenshots, diagrams using Groq Vision.
-- **Summarizer** — AI-powered summarization of long texts.
-- **Prompt Buddy** — Ask natural questions like “Explain this page to me”.
-- **Voice Input** — Speak commands to the assistant (Groq Audio).
+## 🎯 Objective
 
-### 🖥️ Screen Interaction (Screenpi.pe Integration)
-- Capture & analyze visible screen content.
-- Return voice + text simplification on-demand.
-- Accessible explanation using OCR + Groq Vision.
+**ZenCue** is a smart, safe, and supportive AI-powered application designed specifically for neurodivergent children.
+It addresses the challenges kids face in processing text, images, and audio by using **Groq's multimodal AI** to simplify and explain information, offer assistive voice/text chat, and provide personalized support.
 
-### ♿ Accessibility Tools
-- **Text-to-Speech** for any page content.
-- **Dyslexia-friendly themes** with toggle.
-- **Readable font toggle**.
-- **Pomodoro focus timer** to block distractions.
-- **AI-generated visual explanations** from paragraphs.
+It also gives parents a secure way to manage subscriptions through **OnchainKit (Base)** providing both trust and transparency.
 
-### 🔐 Wallet & Onchain Subscription (Base Network)
-- **Coinbase Wallet integration**.
-- **Free tier** — Limited AI interactions.
-- **Pro tier (NFT/token gated)** — Unlimited queries, memory features, voice assistant.
-- **Subscription status via Base Sepolia testnet**.
+---
 
-### 🔥 Personalization & Firebase
-- Store user preferences (theme, font, simplification level).
-- Log AI interactions and analytics.
-- Anonymous or wallet-based user ID.
+## 🧠 Team & Approach
+
+### Team Name:  
+`The Eaglites`
+
+### Team Members:  
+- **Arnab Ghosh** ([**LinkedIn**](https://linkedin.com/in/tulug559)  / Fullstack Dev)
+- **Ayon Paul** ([**LinkedIn**](https://www.linkedin.com/in/ayon2407s) / Frontend Dev)
+- **Soumi Das** ([**LinkedIn**](https://www.linkedin.com/in/soumi-das-831105308) / UI/UX Designer)
+- **Sudipta Maity** ([**LinkedIn**](https://www.linkedin.com/in/sudipta-maity-099a25302) / Project Management)
+
+### Our Approach:  
+We chose this problem to help make learning and interaction easier for neurodivergent kids using safe, responsible AI.
+*   Tackled UX for kids with accessibility needs
+*   Integrated **Groq** for multimodal understanding (text, image, voice)
+*   Simplified blockchain wallet usage with **OnchainKit**
+*   Built voice + chat assistant for intuitive interaction
+* Enhanced kids' efficiency via **MindZone**
 
 ---
 
 ## 🛠️ Tech Stack
 
-| Category              | Tech                         |
-|-----------------------|------------------------------|
-| Frontend              | React 18, Vite, Tailwind CSS |
-| AI Backend            | Flask + Groq APIs            |
-| Screen Processing     | [Screenpi.pe](https://screenpi.pe) |
-| Wallet & Blockchain   | Coinbase Wallet, Base Network, OnchainKit |
-| Auth & Storage        | Firebase + Firestore         |
-| Animations/UI         | Three.js, React Three Fiber  |
+### Core Technologies Used:
+- **Frontend:** React, Vite, Tailwind CSS, TypeScript, Radix UI
+- **Backend:** Flask, Groq APIs- Text, Vision, Text-to-Speech  (`meta-llama models` & `playai-tts`), Firebase Authentication
+- **Database:** Firebase Datastore
+- **APIs:** Groq multimodel APIs
+- **Hosting:** Vercel app
+
+### Sponsor Technologies Used (if any):
+- ✅ **Groq:** _Used for smart summarization (text, URL, images), vision explanation, and AI chat._
+- ✅ **Base (OnchainKit):** _Used to connect blockchain wallets and securely manage subscription payments via **SepholiaETH**._ 
 
 ---
 
-## ⚙️ Getting Started
+## ✨ Key Features
 
-### 1. Clone the Repo
-```bash
-git clone https://github.com/ayonpaul8906/ZenCue.git
-cd ZenCue
-```
+Highlight the most important features of your project:
+
+- ✅ **Prompt Buddy**: Prompt Buddy is an AI-powered text and voice chatbot in ZenCue that helps neurodivergent kids interact, ask questions, and receive friendly, simplified responses using Groq.  
+- ✅ **Smart Explain**: Smart Explain uses Groq AI to instantly summarize text, URLs, or images into simple, kid-friendly explanations with optional audio support.
+- ✅ **MindZone**: MindZone is a calming space with reading aids, quizzes, and neurodivergent-friendly tools, plus forums and ambient support for mental clarity and growth.
+- ✅ **Focus (within MindZone)**: It helps kids stay on track with a smart Pomodoro timer, tab switch alerts, and gentle nudges to refocus or take breaks when attention fades.
+
+
 ---
 
-### 2. Install Dependencies
+## 📽️ Demo & Deliverables
+
+- **Demo Video Link:** [ZenCue]()  
+- **Pitch Deck / PPT Link:** [PPT_Zencue]()  
+
+---
+
+## ✅ Tasks & Bonus Checklist
+
+- ✅ **All members of the team completed the mandatory task - Followed at least 2 of our social channels and filled the form** (Details in Participant Manual)  
+- ✅ **All members of the team completed Bonus Task 1 - Sharing of Badges and filled the form (2 points)**  (Details in Participant Manual)
+- ✅ **All members of the team completed Bonus Task 2 - Signing up for Sprint.dev and filled the form (3 points)**  (Details in Participant Manual)
+
+
+---
+
+## 🧪 How to Run the Project
+
+### Requirements:
+- `Node.js` / `Python 3.10` or above
+- **API Keys:**
+    * Groq API Key
+    * Firebase Credentials to be added in the `firebase.tsx`
+- **.env file setup:**
+    * Frontend: 
+    ```
+    VITE_COINBASE_APP_ID=
+    VITE_ETHERSCAN_API_KEY=
+    VITE_RECEIVER_ADDRESS=
+
+    ```
+    * Backend:
+    ```
+    GROQ_API_KEY=your_groq_api_key_here
+    GROQ_AUDIO_API_ENDPOINT=https://api.groq.com/openai/v1/audio/speech
+    GROQ_VISION_API_ENDPOINT=https://api.groq.co/v1/vision
+    ``` 
+
+### Local Setup:
 ```bash
+# Clone the repo
+git clone https://github.com/ayonpaul8906/ZenCue/
+
+# Install dependencies
+cd frontend
 npm install
-# or
-yarn
-```
----
 
-### 3. Environment Variables
-Create a .env file in the root and add:
-
-```env
-VITE_FIREBASE_API_KEY=your_firebase_key
-VITE_FIREBASE_PROJECT_ID=your_project_id
-VITE_GROQ_API_KEY=your_groq_key
-VITE_SCREENPIPE_API_KEY=your_screenpipe_key
-VITE_COINBASE_API_KEY=your_cb_key
-```
----
-
-### 4. Run the App
-```bash
+# Start development server
 npm run dev
-# or
-yarn dev
+
+#Add a new terminal
+cd backend
+pip install -r requirements.txt
+
+#Start backend server
+python app.py
 ```
+
 ---
 
-## 🧪 Future Roadmap
-🧬 Multi-language support
+## 🧬 Future Scope
 
-🤝 AI Memory (per user)
+*   👨‍👩‍👧 Parent Dashboard & Progress Tracking
+*   🌐 Multi-language Support for Broader Reach
+*   📱 Mobile App Version
+*   🛡️ End-to-End Encryption for Audio Chat
+*    🚀 Real-time Browser Extension for Kids via `Screenpipe`
 
-🌐 Browser extension
+---
 
-🔄 Real-time screen reader agent
+## 📎 Resources / Credits
 
-🎨 Enhanced personalization settings
+- Groq APIs
+- OnchainKit by Base
+- Radix UI
+- Ethereum Sepolia Testnet
 
-## 👥 Team
-Ayon Paul — Frontend Developer
+---
 
-Arnab Ghosh — Backend Developer
+## 🏁 Final Words
 
+ZenCue has been a heartful project. We learned how to build inclusively, collaborated across AI and blockchain, and stayed focused on the real-world need to support kids who process the world differently.
 
+**A huge shoutout to the community who helped us build something meaningful ❤️**
 
+Shoutout to the entire team for the late-night debugging sessions, spontaneous UI ideas, and shared laughs that made this hackathon more than just code. We’re proud of what we’ve built and excited for where ZenCue can go next. Thanks for checking it out!
 
-## 🙏 Support & Feedback
-If you love the project, star ⭐ the repo and share feedback via Issues.
- 
-For contributions or partnership: ayonpaul8906@gmail.com
-
-
+---
