@@ -57,19 +57,19 @@ We chose this problem to help make learning and interaction easier for neurodive
 
 ## ✨ Key Features
 
-Highlight the most important features of your project:
-
-- 🤖 **Prompt Buddy**: Prompt Buddy is an AI-powered text and voice chatbot in ZenCue that helps neurodivergent kids interact, ask questions, and receive friendly, simplified responses using Groq.  
-- 📱 **Smart Explain**: Smart Explain uses Groq AI to instantly summarize text, URLs, or images into simple, kid-friendly explanations with optional audio support.
-- 🤯 **MindZone**: MindZone is a calming space with reading aids, quizzes, and neurodivergent-friendly tools, plus forums and ambient support for mental clarity and growth.
-- 🔕 **Focus (within MindZone)**: It helps kids stay on track with a smart Pomodoro timer, tab switch alerts, and gentle nudges to refocus or take breaks when attention fades.
+| 🔑 Feature        | Description                                                                                                                                                                   | Screenshot |
+|------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------|
+| 🤖 **Prompt Buddy** | An AI-powered **chatbot** (text + voice) that helps neurodivergent kids interact, ask questions, and receive **friendly, simplified responses** using Groq.                | ![Prompt Buddy](https://github.com/user-attachments/assets/189df252-c6b4-45b6-8194-cfdfbb906279) |
+| 📱 **Smart Explain** | Allows kids to **paste text, URLs, or images** to get instant, **kid-friendly summaries**, with optional **text-to-speech** for better accessibility.                       | ![Smart Explain](https://github.com/user-attachments/assets/a0ed0b5e-a397-441d-bed5-aaa809d5a836) |
+| 🤯 **MindZone**      | A calming space offering **reading tools, neurodivergent-friendly quizzes, forums, and soothing support**, designed to nurture clarity and emotional regulation.            | ![MindZone](https://github.com/user-attachments/assets/6b9787f2-5a09-4a29-96c1-d316e5fd7635) |
+| 🔕 **Focus** (within MindZone) | Built-in **Pomodoro timer**, tab switch detection, and gentle nudges help kids **maintain focus**, take breaks, and avoid distractions during tasks. | ![Focus](https://github.com/user-attachments/assets/80c804f5-0250-4156-b87b-30316302efc5) |
 
 
 ---
 
 ## 📽️ Demo & Deliverables
 
-- **Demo Video Link:** [**ZenCue**](https://youtu.be/CCufY1OgUb0?si=4JXIaMYCffWjNZs_)  
+- **Demo Video Link:** [**ZenCue**](https://www.youtube.com/watch?v=CCufY1OgUb0)  
 - **Pitch Deck / PPT Link:** [**PPT_Zencue**](https://docs.google.com/presentation/d/1v7Ds5ZBGYIcxTWJ6TXUKaeaxeP1pnpUF/edit?usp=sharing&ouid=115095129633022028895&rtpof=true&sd=true)  
 
 ---
