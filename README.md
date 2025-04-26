@@ -6,11 +6,9 @@
 
 ---
 
-## 📌 Problem Statements
+## 📌 Problem Statement
  
-- **Problem Statement 1 –** Weave AI magic with Groq
-- **Problem Statement 4 –** Craft the future of unseen consumer experience with base
-
+**Problem Statement 1 – Weave AI magic with Groq**
 
 ## 🎯 Objective
 
@@ -27,8 +25,8 @@ It also gives parents a secure way to manage subscriptions through **OnchainKit 
 `The Eaglites`
 
 ### Team Members:  
-- **Arnab Ghosh** ([**LinkedIn**](https://linkedin.com/in/tulug559)  / Fullstack Dev)
-- **Ayon Paul** ([**LinkedIn**](https://www.linkedin.com/in/ayon2407s) / Frontend Dev)
+- **Arnab Ghosh** ([**LinkedIn**](https://linkedin.com/in/tulug559)  / [**GitHub**](https://github.com/tulu-g559)/ Fullstack Dev/ **Team Lead**)
+- **Ayon Paul** ([**LinkedIn**](https://www.linkedin.com/in/ayon2407s) / [**GitHub**](https://github.com/ayonpaul8906/) / Frontend Dev)
 - **Soumi Das** ([**LinkedIn**](https://www.linkedin.com/in/soumi-das-831105308) / UI/UX Designer)
 - **Sudipta Maity** ([**LinkedIn**](https://www.linkedin.com/in/sudipta-maity-099a25302) / Project Management)
 
@@ -52,8 +50,8 @@ We chose this problem to help make learning and interaction easier for neurodive
 - **Hosting:** Vercel app
 
 ### Sponsor Technologies Used (if any):
-- ✅ **Groq:** _Used for smart summarization (text, URL, images), vision explanation, and AI chat._
-- ✅ **Base (OnchainKit):** _Used to connect blockchain wallets and securely manage subscription payments via **SepholiaETH**._ 
+- [x]  **Groq:**  _Used for smart summarization (text, URL, images), vision explanation, and AI chat._   
+- [x]  **Base:** _Used to connect blockchain wallets and securely manage subscription payments via **SepholiaETH**._
 
 ---
 
@@ -61,26 +59,26 @@ We chose this problem to help make learning and interaction easier for neurodive
 
 Highlight the most important features of your project:
 
-- ✅ **Prompt Buddy**: Prompt Buddy is an AI-powered text and voice chatbot in ZenCue that helps neurodivergent kids interact, ask questions, and receive friendly, simplified responses using Groq.  
-- ✅ **Smart Explain**: Smart Explain uses Groq AI to instantly summarize text, URLs, or images into simple, kid-friendly explanations with optional audio support.
-- ✅ **MindZone**: MindZone is a calming space with reading aids, quizzes, and neurodivergent-friendly tools, plus forums and ambient support for mental clarity and growth.
-- ✅ **Focus (within MindZone)**: It helps kids stay on track with a smart Pomodoro timer, tab switch alerts, and gentle nudges to refocus or take breaks when attention fades.
+- 🤖 **Prompt Buddy**: Prompt Buddy is an AI-powered text and voice chatbot in ZenCue that helps neurodivergent kids interact, ask questions, and receive friendly, simplified responses using Groq.  
+- 📱 **Smart Explain**: Smart Explain uses Groq AI to instantly summarize text, URLs, or images into simple, kid-friendly explanations with optional audio support.
+- 🤯 **MindZone**: MindZone is a calming space with reading aids, quizzes, and neurodivergent-friendly tools, plus forums and ambient support for mental clarity and growth.
+- 🔕 **Focus (within MindZone)**: It helps kids stay on track with a smart Pomodoro timer, tab switch alerts, and gentle nudges to refocus or take breaks when attention fades.
 
 
 ---
 
 ## 📽️ Demo & Deliverables
 
-- **Demo Video Link:** [ZenCue]()  
-- **Pitch Deck / PPT Link:** [PPT_Zencue]()  
+- **Demo Video Link:** [**ZenCue**](https://youtu.be/CCufY1OgUb0?si=4JXIaMYCffWjNZs_)  
+- **Pitch Deck / PPT Link:** [**PPT_Zencue**](https://docs.google.com/presentation/d/1v7Ds5ZBGYIcxTWJ6TXUKaeaxeP1pnpUF/edit?usp=sharing&ouid=115095129633022028895&rtpof=true&sd=true)  
 
 ---
 
 ## ✅ Tasks & Bonus Checklist
 
-- ✅ **All members of the team completed the mandatory task - Followed at least 2 of our social channels and filled the form** (Details in Participant Manual)  
-- ✅ **All members of the team completed Bonus Task 1 - Sharing of Badges and filled the form (2 points)**  (Details in Participant Manual)
-- ✅ **All members of the team completed Bonus Task 2 - Signing up for Sprint.dev and filled the form (3 points)**  (Details in Participant Manual)
+- [x]  **All members of the team completed the mandatory task - Followed at least 2 of our social channels and filled the form** (Details in Participant Manual)  
+- [x]  **All members of the team completed Bonus Task 1 - Sharing of Badges and filled the form (2 points)**  (Details in Participant Manual)
+- [x]  **All members of the team completed Bonus Task 2 - Signing up for Sprint.dev and filled the form (3 points)**  (Details in Participant Manual)
 
 
 ---
@@ -130,7 +128,7 @@ python app.py
 ---
 
 ## 🧬 Future Scope
-
+*   🪙Migrate from SepholiaETH to real/testnet ETH for broader adoption.
 *   👨‍👩‍👧 Parent Dashboard & Progress Tracking
 *   🌐 Multi-language Support for Broader Reach
 *   📱 Mobile App Version
@@ -141,10 +139,10 @@ python app.py
 
 ## 📎 Resources / Credits
 
-- Groq APIs
-- OnchainKit by Base
-- Radix UI
-- Ethereum Sepolia Testnet
+- *Groq APIs*
+- *OnchainKit by Base*
+- *Radix UI*
+- *Ethereum Sepolia Testnet*
 
 ---
 
